@@ -3,10 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Database\Seeders\UserSeeder;
-use Database\Seeders\ServiceSeeder;
-use Database\Seeders\AppointmentTimeSeeder;
-use Database\Seeders\AppointmentSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,7 +12,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            // UserSeeder::class,
+            CategorySeeder::class,
+            ProductSeeder::class,
         ]);
     }
 }
