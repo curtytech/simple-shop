@@ -47,15 +47,15 @@ return new class extends Migration
         User::firstOrCreate(
             ['email' => 'user@user'],
             [
-                'name' => 'Store',
+                'name' => 'TechStore Brasil',
                 'slug' => 'store',
-                'slogan' => 'Store Owner',
-                'celphone' => '21599999998',
+                'slogan' => 'Sua loja de tecnologia de confiança',
+                'celphone' => '(11) 99876-5432',
                 'email_verified_at' => now(),
                 'password' => Hash::make('12345678'),
                 'role' => 'store',
-                'logo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-                'banner' => 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=400&fit=crop',
+                'logo' => 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=400&fit=crop',
+                'banner' => 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1200&h=400&fit=crop',
             ]
         );
 
