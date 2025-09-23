@@ -133,8 +133,13 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                ImageColumn::make('image_logo')
+                ImageColumn::make('logo')
                     ->label('Logo')
+                    ->circular()
+                    ->size(50)
+                    ->defaultImageUrl('/images/default-avatar.png'),
+                ImageColumn::make('banner')
+                    ->label('Banner')
                     ->circular()
                     ->size(50)
                     ->defaultImageUrl('/images/default-avatar.png'),
@@ -154,12 +159,12 @@ class UserResource extends Resource
                     ->label('Função')
                     ->colors([
                         'danger' => 'admin',
-                        'warning' => 'barber',
+                        'warning' => 'store',
                         'success' => 'user',
                     ])
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'admin' => 'Administrador',
-                        'barber' => 'Barbeiro',
+                        'store' => 'Loja',
                         'user' => 'Usuário',
                         default => $state,
                     }),

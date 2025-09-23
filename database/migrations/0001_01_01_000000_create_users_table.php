@@ -35,23 +35,27 @@ return new class extends Migration
                 'name' => 'Admin',
                 'slug' => 'admin',
                 'slogan' => 'Administrator',
-                'celphone' => '000-000-0000',
+                'celphone' => '21599999999',
                 'email_verified_at' => now(),
                 'password' => Hash::make('12345678'),
                 'role' => 'admin',
+                'logo' => 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop&crop=face',
+                'banner' => 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=400&fit=crop',
             ]
         );
 
         User::firstOrCreate(
             ['email' => 'user@user'],
             [
-                'name' => 'store',
+                'name' => 'Store',
                 'slug' => 'store',
                 'slogan' => 'Store Owner',
-                'celphone' => '000-000-0001',
+                'celphone' => '21599999998',
                 'email_verified_at' => now(),
                 'password' => Hash::make('12345678'),
                 'role' => 'store',
+                'logo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
+                'banner' => 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=400&fit=crop',
             ]
         );
 

@@ -115,7 +115,18 @@ class ProductResource extends Resource
                     ->circular()
                     ->size(50)
                     ->getStateUsing(function ($record) {
-                        return $record->images ? $record->images[0] ?? null : null;
+                        if (!$record->images || empty($record->images)) {
+                            return null;
+                        }
+                        
+                        $firstImage = is_array($record->images) ? $record->images[0] : $record->images;
+                        
+                        // Se for uma URL externa, retorna diretamente
+                        if (str_starts_with($firstImage, 'http://') || str_starts_with($firstImage, 'https://')) {
+                            return $firstImage;
+                        }
+                        // Se for um arquivo local, usa o storage
+                        return asset('storage/' . $firstImage);
                     }),
 
                 Tables\Columns\TextColumn::make('name')

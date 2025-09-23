@@ -62,7 +62,15 @@ class CategoryResource extends Resource
                 Tables\Columns\ImageColumn::make('image')
                     ->label('Imagem')
                     ->circular()
-                    ->size(50),
+                    ->size(50)
+                    ->getStateUsing(function ($record) {
+                        // Se for uma URL externa, retorna diretamente
+                        if ($record->image && (str_starts_with($record->image, 'http://') || str_starts_with($record->image, 'https://'))) {
+                            return $record->image;
+                        }
+                        // Se for um arquivo local, usa o storage
+                        return $record->image ? asset('storage/' . $record->image) : null;
+                    }),
 
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome')
