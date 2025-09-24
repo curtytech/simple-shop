@@ -2,32 +2,28 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class User extends Authenticatable
+class Client extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'name',
-        'slug',
         'email',
         'password',
-        'slogan',
         'celphone',
-        'logo',
-        'banner',
-        'role',
+        'image',
         'reference_point',
         'address',
         'number',
@@ -43,7 +39,7 @@ class User extends Authenticatable
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -64,34 +60,28 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the categories for the user.
+     * Get the user that owns the client.
      */
-    public function categories(): HasMany
+    public function user(): BelongsTo
     {
-        return $this->hasMany(Category::class);
+        return $this->belongsTo(User::class);
     }
 
     /**
-     * Get the products for the user.
-     */
-    public function products(): HasMany
-    {
-        return $this->hasMany(Product::class);
-    }
-
-    /**
-     * Get the clients for the user.
-     */
-    public function clients(): HasMany
-    {
-        return $this->hasMany(Client::class);
-    }
-
-    /**
-     * Get the carts for the store.
+     * Get the carts for the client.
      */
     public function carts(): HasMany
     {
         return $this->hasMany(Cart::class);
+    }
+
+    /**
+     * Get the cart for a specific store.
+     */
+    public function getCartForStore(User $store): Cart
+    {
+        return $this->carts()->firstOrCreate([
+            'user_id' => $store->id,
+        ]);
     }
 }

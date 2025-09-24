@@ -24,7 +24,40 @@ return new class extends Migration
             $table->string('banner')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('role')->default('user');
+            $table->string('role')->default('store');
+            $table->string('reference_point')->nullable();
+            $table->string('address')->nullable();
+            $table->string('number')->nullable();
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
+            $table->string('country')->nullable();
+            $table->string('zipcode')->nullable();
+            $table->string('instagram')->nullable();
+            $table->string('facebook')->nullable();
+            $table->string('site')->nullable();
+            $table->rememberToken();
+            $table->timestamps();
+        });
+
+        Schema::create('clients', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->index()->constrained()->onDelete('cascade');
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('celphone')->nullable();
+            $table->string('image')->nullable();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->string('reference_point')->nullable(); // Corrigido: refence_point -> reference_point
+            $table->string('address')->nullable();
+            $table->string('number')->nullable();
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
+            $table->string('country')->nullable();
+            $table->string('zipcode')->nullable();
+            $table->string('instagram')->nullable();
+            $table->string('facebook')->nullable();
+            $table->string('site')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
@@ -80,6 +113,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('clients'); // Adicionado
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
