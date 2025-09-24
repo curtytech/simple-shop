@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
+use App\Filament\Resources\ClientResource\Pages;
+use App\Models\Client;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -13,21 +13,21 @@ use Filament\Tables\Table;
 use Filament\Forms\Components\FileUpload;
 use Filament\Tables\Columns\ImageColumn;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
-class UserResource extends Resource
+class ClientResource extends Resource
 {
-    protected static ?string $model = User::class;
+    protected static ?string $model = Client::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
     
-    protected static ?string $navigationLabel = 'Usuários';
+    protected static ?string $navigationLabel = 'Clientes';
     
-    protected static ?string $modelLabel = 'Usuário';
+    protected static ?string $modelLabel = 'Cliente';
     
-    protected static ?string $pluralModelLabel = 'Usuários';
+    protected static ?string $pluralModelLabel = 'Clientes';
+
+    protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {
@@ -35,57 +35,42 @@ class UserResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Informações Pessoais')
                     ->schema([
+                        Forms\Components\Select::make('user_id')
+                            ->label('Loja')
+                            ->relationship('user', 'name')
+                            ->options(function () {
+                                if (auth()->user()->role === 'admin') {
+                                    return User::where('role', 'store')->pluck('name', 'id');
+                                }
+                                return User::where('id', auth()->id())->pluck('name', 'id');
+                            })
+                            ->required()
+                            ->default(fn () => auth()->user()->role !== 'admin' ? auth()->id() : null)
+                            ->disabled(fn () => auth()->user()->role !== 'admin')
+                            ->searchable()
+                            ->preload(),
+                        
                         Forms\Components\TextInput::make('name')
                             ->label('Nome')
                             ->required()
-                            ->maxLength(255)
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(function (string $operation, $state, Forms\Set $set) {
-                                if ($operation !== 'create') {
-                                    return;
-                                }
-                                $set('slug', Str::slug($state));
-                            }),
-                        
-                        Forms\Components\TextInput::make('slug')
-                            ->label('Slug')
-                            ->required()
-                            ->maxLength(255)
-                            ->unique(User::class, 'slug', ignoreRecord: true)
-                            ->rules(['alpha_dash'])
-                            ->helperText('Usado para URLs amigáveis'),
+                            ->maxLength(255),
                         
                         Forms\Components\TextInput::make('email')
                             ->label('E-mail')
                             ->email()
                             ->required()
                             ->maxLength(255)
-                            ->unique(User::class, 'email', ignoreRecord: true),
+                            ->unique(Client::class, 'email', ignoreRecord: true),
                         
                         Forms\Components\TextInput::make('celphone')
                             ->label('Celular')
                             ->tel()
                             ->maxLength(20)
                             ->placeholder('(11) 99999-9999'),
-                        
-                        Forms\Components\Textarea::make('slogan')
-                            ->label('Slogan')
-                            ->maxLength(500)
-                            ->rows(2)
-                            ->placeholder('Descreva o slogan da sua loja'),
                     ])->columns(2),
                 
                 Forms\Components\Section::make('Configurações de Acesso')
                     ->schema([
-                        Forms\Components\Select::make('role')
-                            ->label('Função')
-                            ->options([
-                                'admin' => 'Administrador',
-                                'store' => 'Loja',
-                            ])
-                            ->required()
-                            ->default('store'),
-                        
                         Forms\Components\TextInput::make('password')
                             ->label('Senha')
                             ->password()
@@ -101,10 +86,6 @@ class UserResource extends Resource
                             ->required(fn (string $operation): bool => $operation === 'create')
                             ->minLength(8)
                             ->dehydrated(false),
-                        
-                        Forms\Components\DateTimePicker::make('email_verified_at')
-                            ->label('E-mail Verificado em')
-                            ->helperText('Deixe vazio se o e-mail não foi verificado'),
                     ])->columns(2),
                 
                 Forms\Components\Section::make('Endereço')
@@ -172,36 +153,21 @@ class UserResource extends Resource
                             ->suffixIcon('heroicon-m-globe-alt'),
                     ])->columns(3),
                 
-                Forms\Components\Section::make('Imagens')
+                Forms\Components\Section::make('Imagem')
                     ->schema([
-                        FileUpload::make('logo')
-                            ->label('Logo')
+                        FileUpload::make('image')
+                            ->label('Foto do Cliente')
                             ->image()
-                            ->directory('users/logos')
+                            ->directory('clients')
                             ->visibility('public')
                             ->imageEditor()
                             ->imageEditorAspectRatios([
                                 '1:1',
                                 '4:3',
-                                '16:9',
                             ])
                             ->maxSize(2048)
                             ->helperText('Tamanho máximo: 2MB. Formatos aceitos: JPG, PNG, GIF'),
-                        
-                        FileUpload::make('banner')
-                            ->label('Banner')
-                            ->image()
-                            ->directory('users/banners')
-                            ->visibility('public')
-                            ->imageEditor()
-                            ->imageEditorAspectRatios([
-                                '16:9',
-                                '21:9',
-                                '3:1',
-                            ])
-                            ->maxSize(5120)
-                             ->helperText('Tamanho máximo: 5MB. Recomendado: formato panorâmico'),
-                     ])->columns(2),
+                    ]),
             ]);
     }
 
@@ -209,8 +175,8 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                ImageColumn::make('logo')
-                    ->label('Logo')
+                ImageColumn::make('image')
+                    ->label('Foto')
                     ->circular()
                     ->size(50)
                     ->defaultImageUrl('/images/default-avatar.png'),
@@ -218,8 +184,7 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome')
                     ->searchable()
-                    ->sortable()
-                    ->description(fn (User $record): string => $record->slogan ?? ''),
+                    ->sortable(),
                 
                 Tables\Columns\TextColumn::make('email')
                     ->label('E-mail')
@@ -233,21 +198,11 @@ class UserResource extends Resource
                     ->copyable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 
-                Tables\Columns\BadgeColumn::make('role')
-                    ->label('Função')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'admin' => 'danger',
-                        'store' => 'warning',
-                        'user' => 'success',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'admin' => 'Administrador',
-                        'store' => 'Loja',
-                        'user' => 'Usuário',
-                        default => $state,
-                    }),
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Loja')
+                    ->searchable()
+                    ->sortable()
+                    ->visible(fn () => auth()->user()->role === 'admin'),
                 
                 Tables\Columns\TextColumn::make('city')
                     ->label('Cidade')
@@ -258,13 +213,6 @@ class UserResource extends Resource
                     ->label('Estado')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                
-                Tables\Columns\IconColumn::make('email_verified_at')
-                    ->label('E-mail Verificado')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-check-badge')
-                    ->falseIcon('heroicon-o-x-mark')
-                    ->getStateUsing(fn ($record) => !is_null($record->email_verified_at)),
                 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
@@ -279,13 +227,10 @@ class UserResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('role')
-                    ->label('Função')
-                    ->options([
-                        'admin' => 'Administrador',
-                        'store' => 'Loja',
-                        'user' => 'Usuário',
-                    ]),
+                Tables\Filters\SelectFilter::make('user')
+                    ->label('Loja')
+                    ->relationship('user', 'name')
+                    ->visible(fn () => auth()->user()->role === 'admin'),
                 
                 Tables\Filters\SelectFilter::make('state')
                     ->label('Estado')
@@ -320,14 +265,6 @@ class UserResource extends Resource
                     ])
                     ->searchable(),
                 
-                Tables\Filters\Filter::make('email_verified')
-                    ->label('E-mail Verificado')
-                    ->query(fn (Builder $query): Builder => $query->whereNotNull('email_verified_at')),
-                
-                Tables\Filters\Filter::make('email_not_verified')
-                    ->label('E-mail Não Verificado')
-                    ->query(fn (Builder $query): Builder => $query->whereNull('email_verified_at')),
-                
                 Tables\Filters\Filter::make('has_social_media')
                     ->label('Com Redes Sociais')
                     ->query(fn (Builder $query): Builder => $query->where(function ($query) {
@@ -353,6 +290,18 @@ class UserResource extends Resource
             ->defaultSort('created_at', 'desc');
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        
+        // Se não for admin, mostrar apenas clientes da própria loja
+        if (auth()->user()->role !== 'admin') {
+            $query->where('user_id', auth()->id());
+        }
+        
+        return $query;
+    }
+
     public static function getRelations(): array
     {
         return [
@@ -363,9 +312,10 @@ class UserResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
+            'index' => Pages\ListClients::route('/'),
+            'create' => Pages\CreateClient::route('/create'),
+            'view' => Pages\ViewClient::route('/{record}'),
+            'edit' => Pages\EditClient::route('/{record}/edit'),
         ];
     }
 }

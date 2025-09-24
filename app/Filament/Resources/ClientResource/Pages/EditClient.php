@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Filament\Resources\ClientResource\Pages;
+
+use App\Filament\Resources\ClientResource;
+use Filament\Actions;
+use Filament\Resources\Pages\EditRecord;
+
+class EditClient extends EditRecord
+{
+    protected static string $resource = ClientResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\ViewAction::make()
+                ->label('Visualizar'),
+            Actions\DeleteAction::make()
+                ->label('Excluir'),
+        ];
+    }
+    
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+    
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Cliente atualizado com sucesso!';
+    }
+}
