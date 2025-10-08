@@ -4,11 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ClientAuthController;
+use App\Http\Controllers\WelcomeController;
 use App\Models\User;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
 // Rota para buscar store_id por slug
 Route::get('/api/store-by-slug/{slug}', function ($slug) {
