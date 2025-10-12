@@ -307,6 +307,51 @@
                 document.getElementById('cart-modal').classList.remove('hidden');
                 loadCart();
             });
+            
+            // Checkout com Mercado Pago
+            document.getElementById('checkout').addEventListener('click', async function() {
+                try {
+                    // Verificar itens do carrinho (e autenticação do cliente)
+                    const cartItems = await getCurrentCartItems();
+                    if (!cartItems || cartItems.length === 0) {
+                        showNotification('Seu carrinho está vazio.', 'error');
+                        return;
+                    }
+
+                    const response = await fetch('/api/payments/mercadopago/preference', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({
+                            store_id: storeId
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        const url = (data.sandbox && data.sandbox_init_point) ? data.sandbox_init_point : data.init_point;
+                        if (url) {
+                            window.location.href = url; // Redireciona para o checkout do Mercado Pago
+                        } else {
+                            showNotification('Não foi possível iniciar o checkout.', 'error');
+                        }
+                    } else {
+                        // Tratar erros (ex.: não autenticado ou loja sem credenciais)
+                        showNotification(data.message || 'Erro ao criar preferência de pagamento.', 'error');
+                        if (data.requires_auth) {
+                            const modal = document.getElementById('auth-modal');
+                            if (modal) modal.classList.remove('hidden');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro ao iniciar checkout:', error);
+                    showNotification('Erro ao iniciar checkout.', 'error');
+                }
+            });
 
             // Limpar carrinho
             document.getElementById('clear-cart').addEventListener('click', async function() {

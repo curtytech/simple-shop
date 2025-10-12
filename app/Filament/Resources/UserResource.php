@@ -202,6 +202,27 @@ class UserResource extends Resource
                             ->maxSize(5120)
                              ->helperText('Tamanho máximo: 5MB. Recomendado: formato panorâmico'),
                      ])->columns(2),
+                
+                Forms\Components\Section::make('Mercado Pago')
+                    ->schema([
+                        Forms\Components\TextInput::make('mp_public_key')
+                            ->label('Public Key')
+                            ->maxLength(255)
+                            ->helperText('Chave pública do Mercado Pago para o Checkout'),
+                        Forms\Components\TextInput::make('mp_access_token')
+                            ->label('Access Token')
+                            ->password()
+                            ->revealable()
+                            ->maxLength(255)
+                            ->helperText('Token de acesso (secreto) da sua conta Mercado Pago'),
+                        Forms\Components\Toggle::make('mp_sandbox')
+                            ->label('Modo Sandbox')
+                            ->helperText('Ative para testar pagamentos sem cobrança'),
+                        Forms\Components\TextInput::make('mp_integrator_id')
+                            ->label('Integrator ID')
+                            ->maxLength(255)
+                            ->helperText('Opcional, usado para identificar integrações'),
+                    ])->columns(2),
             ]);
     }
 

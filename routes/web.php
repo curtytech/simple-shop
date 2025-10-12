@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ClientAuthController;
+use App\Http\Controllers\PaymentController;
 use App\Models\User;
 
 Route::get('/', function () {
@@ -47,4 +48,9 @@ Route::prefix('api/cart')->middleware('client.auth')->group(function () {
 });
 
 Route::get('/{slug}', [StoreController::class, 'show'])->name('store.show');
+
+Route::prefix('api/payments/mercadopago')->group(function () {
+    Route::post('/preference', [PaymentController::class, 'createMercadoPagoPreference'])->name('mercadopago.preference');
+});
+Route::post('/webhooks/mercadopago/{store}', [PaymentController::class, 'webhook'])->name('mercadopago.webhook');
 

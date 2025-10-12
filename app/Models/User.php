@@ -2,11 +2,10 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -38,6 +37,10 @@ class User extends Authenticatable
         'instagram',
         'facebook',
         'site',
+        'mp_public_key',
+        'mp_access_token',
+        'mp_sandbox',
+        'mp_integrator_id',
     ];
 
     /**
@@ -55,13 +58,11 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'mp_sandbox' => 'boolean',
+    ];
 
     /**
      * Get the categories for the user.
