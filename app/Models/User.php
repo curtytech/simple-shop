@@ -37,10 +37,11 @@ class User extends Authenticatable
         'instagram',
         'facebook',
         'site',
-        'mp_public_key',
-        'mp_access_token',
-        'mp_sandbox',
-        'mp_integrator_id',
+        'mercadopago_public_key',
+        'mercadopago_access_token',
+        'mercadopago_sandbox',
+        'mercadopago_webhook_url',
+        'mercadopago_webhook_secret',
     ];
 
     /**

@@ -38,7 +38,7 @@ class UserResource extends Resource
                         Forms\Components\TextInput::make('name')
                             ->label('Nome')
                             ->required()
-                            ->maxLength(255)
+                            ->maxLength(50)
                             ->live(onBlur: true)
                             ->afterStateUpdated(function (string $operation, $state, Forms\Set $set) {
                                 if ($operation !== 'create') {
@@ -50,7 +50,7 @@ class UserResource extends Resource
                         Forms\Components\TextInput::make('slug')
                             ->label('Slug')
                             ->required()
-                            ->maxLength(255)
+                            ->maxLength(70)
                             ->unique(User::class, 'slug', ignoreRecord: true)
                             ->rules(['alpha_dash'])
                             ->helperText('Usado para URLs amigáveis'),
@@ -59,7 +59,7 @@ class UserResource extends Resource
                             ->label('E-mail')
                             ->email()
                             ->required()
-                            ->maxLength(255)
+                            ->maxLength(50)
                             ->unique(User::class, 'email', ignoreRecord: true),
                         
                         Forms\Components\TextInput::make('celphone')
@@ -111,17 +111,17 @@ class UserResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('address')
                             ->label('Endereço')
-                            ->maxLength(255)
+                            ->maxLength(100)
                             ->placeholder('Rua, Avenida, etc.'),
                         
                         Forms\Components\TextInput::make('number')
                             ->label('Número')
-                            ->maxLength(10)
+                            ->maxLength(20)
                             ->placeholder('123'),
                         
                         Forms\Components\TextInput::make('reference_point')
                             ->label('Ponto de Referência')
-                            ->maxLength(255)
+                            ->maxLength(100)
                             ->placeholder('Próximo ao shopping, etc.'),
                         
                         Forms\Components\TextInput::make('city')
@@ -205,23 +205,29 @@ class UserResource extends Resource
                 
                 Forms\Components\Section::make('Mercado Pago')
                     ->schema([
-                        Forms\Components\TextInput::make('mp_public_key')
+                        Forms\Components\TextInput::make('mercadopago_public_key')
                             ->label('Public Key')
                             ->maxLength(255)
                             ->helperText('Chave pública do Mercado Pago para o Checkout'),
-                        Forms\Components\TextInput::make('mp_access_token')
+                        Forms\Components\TextInput::make('mercadopago_access_token')
                             ->label('Access Token')
                             ->password()
                             ->revealable()
                             ->maxLength(255)
                             ->helperText('Token de acesso (secreto) da sua conta Mercado Pago'),
-                        Forms\Components\Toggle::make('mp_sandbox')
+                        Forms\Components\Toggle::make('mercadopago_sandbox')
                             ->label('Modo Sandbox')
                             ->helperText('Ative para testar pagamentos sem cobrança'),
-                        Forms\Components\TextInput::make('mp_integrator_id')
-                            ->label('Integrator ID')
+                        Forms\Components\TextInput::make('mercadopago_webhook_url')
+                            ->label('Webhook URL')
                             ->maxLength(255)
-                            ->helperText('Opcional, usado para identificar integrações'),
+                            ->helperText('URL pública para receber notificações do Mercado Pago'),
+                        Forms\Components\TextInput::make('mercadopago_webhook_secret')
+                            ->label('Webhook Secret')
+                            ->password()
+                            ->revealable()
+                            ->maxLength(255)
+                            ->helperText('Segredo para validar o webhook (se aplicável)'),
                     ])->columns(2),
             ]);
     }

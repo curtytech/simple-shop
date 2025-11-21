@@ -996,6 +996,10 @@ class Str
      */
     public static function plural($value, $count = 2, $prependCount = false)
     {
+        if (is_countable($count)) {
+            $count = count($count);
+        }
+
         return ($prependCount ? Number::format($count).' ' : '').Pluralizer::plural($value, $count);
     }
 
@@ -1112,7 +1116,7 @@ class Str
     /**
      * Set the callable that will be used to generate random strings.
      *
-     * @param  callable|null  $factory
+     * @param  (callable(int): string)|null  $factory
      * @return void
      */
     public static function createRandomStringsUsing(?callable $factory = null)
@@ -1824,6 +1828,22 @@ class Str
     }
 
     /**
+     * Capitalize the first character of each word in a string.
+     *
+     * @param  string  $string
+     * @param  string  $separators
+     * @return string
+     */
+    public static function ucwords($string, $separators = " \t\r\n\f\v")
+    {
+        $pattern = '/(^|['.preg_quote($separators, '/').'])(\p{Ll})/u';
+
+        return preg_replace_callback($pattern, function ($matches) {
+            return $matches[1].mb_strtoupper($matches[2]);
+        }, $string);
+    }
+
+    /**
      * Split a string into pieces by uppercase characters.
      *
      * @param  string  $string
@@ -1913,7 +1933,7 @@ class Str
     /**
      * Set the callable that will be used to generate UUIDs.
      *
-     * @param  callable|null  $factory
+     * @param  (callable(): \Ramsey\Uuid\UuidInterface)|null  $factory
      * @return void
      */
     public static function createUuidsUsing(?callable $factory = null)
@@ -1925,7 +1945,7 @@ class Str
      * Set the sequence that will be used to generate UUIDs.
      *
      * @param  array  $sequence
-     * @param  callable|null  $whenMissing
+     * @param  (callable(): \Ramsey\Uuid\UuidInterface)|null  $whenMissing
      * @return void
      */
     public static function createUuidsUsingSequence(array $sequence, $whenMissing = null)
@@ -2020,7 +2040,7 @@ class Str
     /**
      * Set the callable that will be used to generate ULIDs.
      *
-     * @param  callable|null  $factory
+     * @param  (callable(): \Symfony\Component\Uid\Ulid)|null  $factory
      * @return void
      */
     public static function createUlidsUsing(?callable $factory = null)
@@ -2032,7 +2052,7 @@ class Str
      * Set the sequence that will be used to generate ULIDs.
      *
      * @param  array  $sequence
-     * @param  callable|null  $whenMissing
+     * @param  (callable(): \Symfony\Component\Uid\Ulid)|null  $whenMissing
      * @return void
      */
     public static function createUlidsUsingSequence(array $sequence, $whenMissing = null)

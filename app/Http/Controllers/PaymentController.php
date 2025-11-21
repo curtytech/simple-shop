@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -20,7 +22,7 @@ class PaymentController extends Controller
 
         $store = User::findOrFail($validated['store_id']);
 
-        if (!$store->mp_access_token || !$store->mp_public_key) {
+        if (!$store->mercadopago_access_token || !$store->mercadopago_public_key) {
             return response()->json([
                 'message' => 'Loja não configurou Mercado Pago.',
             ], 422);
@@ -58,43 +60,67 @@ class PaymentController extends Controller
             ];
         }
 
+        // Garantir back_urls válidas (tratando strings vazias)
+        $baseAppUrl = config('app.url') ?: url('/');
+        $baseAppUrl = rtrim($baseAppUrl, '/');
+
+        $defaultSuccess = $baseAppUrl . '/payments/mercadopago/callback/success';
+        $defaultFailure = $baseAppUrl . '/payments/mercadopago/callback/failure';
+        $defaultPending = $baseAppUrl . '/payments/mercadopago/callback/pending';
+
+        $successUrl = !empty($validated['success_url'] ?? null) ? $validated['success_url'] : $defaultSuccess;
+        $failureUrl = !empty($validated['failure_url'] ?? null) ? $validated['failure_url'] : $defaultFailure;
+        $pendingUrl = !empty($validated['pending_url'] ?? null) ? $validated['pending_url'] : $defaultPending;
+
+        // Validação extra para URLs finais (evita erro do MP)
+        foreach ([ 'success' => $successUrl, 'failure' => $failureUrl, 'pending' => $pendingUrl ] as $key => $url) {
+            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                return response()->json([
+                    'message' => "URL inválida para back_urls.{$key}: {$url}. Configure APP_URL com um domínio público (https) ou envie URLs válidas no payload.",
+                ], 422);
+            }
+        }
+
         $externalReference = 'store:' . $store->id . '|client:' . (auth('client')->id() ?? 'guest');
-        $callbackBase = url('/payments/mercadopago/callback');
+        // Limitar descriptor a 22 caracteres ASCII (requisito do MP)
+        $descriptor = Str::of($store->name)->ascii()->substr(0, 22)->trim();
+
         $preference = [
             'items' => $items,
             'payer' => $payer,
             'back_urls' => [
-                'success' => $validated['success_url'] ?? $callbackBase . '/success',
-                'failure' => $validated['failure_url'] ?? $callbackBase . '/failure',
-                'pending' => $validated['pending_url'] ?? $callbackBase . '/pending',
+                'success' => $successUrl,
+                'failure' => $failureUrl,
+                'pending' => $pendingUrl,
             ],
             'auto_return' => 'approved',
             'notification_url' => route('mercadopago.webhook', ['store' => $store->id]),
-            'statement_descriptor' => $store->name,
+            'statement_descriptor' => $descriptor,
             'external_reference' => $externalReference,
             'metadata' => [
                 'store_id' => $store->id,
                 'client_id' => auth('client')->id(),
             ],
+            'binary_mode' => true,
         ];
 
         $baseUrl = 'https://api.mercadopago.com';
         $endpoint = '/checkout/preferences';
-        $token = $store->mp_access_token;
+        $token = $store->mercadopago_access_token;
 
-        $headers = [];
-        if ($store->mp_integrator_id) {
-            $headers['X-Integrator-Id'] = $store->mp_integrator_id;
-        }
+        $headers = []; // sem integrator-id, não há coluna correspondente
 
         $response = Http::withToken($token)
             ->withHeaders($headers)
             ->post($baseUrl . $endpoint, $preference);
 
         if (!$response->successful()) {
+            $body = $response->json();
+            $detail = $body['message'] ?? ($body['error'] ?? null);
             return response()->json([
-                'message' => 'Erro ao criar preferência no Mercado Pago.',
-                'error' => $response->json(),
+                'message' => $detail ? ('Erro ao criar preferência no Mercado Pago: ' . $detail) : 'Erro ao criar preferência no Mercado Pago.',
+                'error' => $body,
+                'status' => $response->status(),
             ], 500);
         }
 
@@ -103,14 +129,52 @@ class PaymentController extends Controller
         return response()->json([
             'init_point' => $data['init_point'] ?? null,
             'sandbox_init_point' => $data['sandbox_init_point'] ?? null,
-            'public_key' => $store->mp_public_key,
-            'sandbox' => (bool) $store->mp_sandbox,
+            'public_key' => $store->mercadopago_public_key,
+            'sandbox' => (bool) $store->mercadopago_sandbox,
         ]);
     }
 
     public function webhook(Request $request, User $store)
     {
-        // TODO: validar / consultar pagamento e atualizar status do pedido
-        return response()->json(['status' => 'ok']);
+        // Consulta detalhe do pagamento com o token da loja
+        $accessToken = $store->mercadopago_access_token;
+        if (!$accessToken) {
+            Log::warning('Webhook recebido mas loja sem token', ['store_id' => $store->id]);
+            return response()->json(['ok' => true], 200);
+        }
+
+        $paymentId = $request->input('data.id')
+            ?? $request->input('id')
+            ?? $request->query('id');
+
+        if (!$paymentId) {
+            Log::warning('Webhook sem paymentId', ['store_id' => $store->id, 'payload' => $request->all()]);
+            return response()->json(['ok' => true], 200);
+        }
+
+        $resp = Http::withToken($accessToken)
+            ->get("https://api.mercadopago.com/v1/payments/{$paymentId}");
+
+        if (!$resp->successful()) {
+            Log::error('Falha ao consultar pagamento do MP', [
+                'store_id' => $store->id,
+                'payment_id' => $paymentId,
+                'status' => $resp->status(),
+                'body' => $resp->body(),
+            ]);
+            return response()->json(['ok' => true], 200);
+        }
+
+        $detail = $resp->json();
+        Log::info('Pagamento consultado com sucesso', [
+            'store_id' => $store->id,
+            'payment_id' => $paymentId,
+            'status' => data_get($detail, 'status'),
+            'amount' => data_get($detail, 'transaction_details.total_paid_amount'),
+            'external_reference' => data_get($detail, 'external_reference'),
+        ]);
+
+        // Aqui você pode atualizar pedido/carrinho dessa store
+        return response()->json(['ok' => true], 200);
     }
 }
