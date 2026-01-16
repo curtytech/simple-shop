@@ -32,10 +32,6 @@ class ListUsers extends ListRecords
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('role', 'admin'))
                 ->badge(User::where('role', 'admin')->count()),
             
-            'barbeiros' => Tab::make('Barbeiros')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('role', 'barber'))
-                ->badge(User::where('role', 'barber')->count()),
-            
             'usuarios' => Tab::make('Usuários')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('role', 'user'))
                 ->badge(User::where('role', 'user')->count()),
