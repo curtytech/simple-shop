@@ -44,4 +44,9 @@ class CartItem extends Model
     {
         return $this->quantity * $this->price;
     }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(CartItem::class);
+    }
 }
