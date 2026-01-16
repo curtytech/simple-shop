@@ -337,7 +337,7 @@
                         return;
                     }
 
-                    const response = await fetch('/api/payments/mercadopago/preference', {
+                    const response = await fetch('/checkout/mercadopago', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -345,7 +345,8 @@
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                         },
                         body: JSON.stringify({
-                            store_id: storeId
+                            store_id: storeId,
+                            client_id: currentClient.id
                         })
                     });
 

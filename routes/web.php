@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ClientAuthController;
+use App\Http\Controllers\MercadoPagoController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\WelcomeController;
 use App\Models\User;
@@ -13,14 +14,14 @@ Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 // Rota para buscar store_id por slug
 Route::get('/api/store-by-slug/{slug}', function ($slug) {
     $store = User::where('slug', $slug)->first();
-    
+
     if ($store) {
         return response()->json([
             'success' => true,
             'store_id' => $store->id
         ]);
     }
-    
+
     return response()->json([
         'success' => false,
         'message' => 'Loja não encontrada'
@@ -51,5 +52,7 @@ Route::get('/{slug}', [StoreController::class, 'show'])->name('store.show');
 Route::prefix('api/payments/mercadopago')->group(function () {
     Route::post('/preference', [PaymentController::class, 'createMercadoPagoPreference'])->name('mercadopago.preference');
 });
-Route::post('/webhooks/mercadopago/{store}', [PaymentController::class, 'webhook'])->name('mercadopago.webhook');
 
+Route::post('/checkout/mercadopago', [MercadoPagoController::class, 'checkout'])->name('mercadopago.checkout');
+
+Route::post('/webhooks/mercadopago/{store}', [PaymentController::class, 'webhook'])->name('mercadopago.webhook');
