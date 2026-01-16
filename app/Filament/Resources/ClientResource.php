@@ -65,9 +65,8 @@ class ClientResource extends Resource
                         Forms\Components\TextInput::make('celphone')
                             ->label('Celular')
                             ->tel()
-                            ->mask('(99) 99999-9999')
-                            ->maxLength(15)
-                            ->placeholder('(21) 99999-9999'),
+                            ->maxLength(20)
+                            ->placeholder('(11) 99999-9999'),
                     ])->columns(2),
                 
                 Forms\Components\Section::make('Configurações de Acesso')
