@@ -290,6 +290,25 @@
         });
 
         function setupEventListeners() {
+            // Filtros de categoria
+            document.querySelectorAll('.category-filter').forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remover classe active de todos os botões
+                    document.querySelectorAll('.category-filter').forEach(btn => {
+                        btn.classList.remove('active', 'bg-blue-500', 'text-white');
+                        btn.classList.add('bg-gray-200', 'text-gray-700');
+                    });
+
+                    // Adicionar classe active ao botão clicado
+                    this.classList.add('active', 'bg-blue-500', 'text-white');
+                    this.classList.remove('bg-gray-200', 'text-gray-700');
+
+                    // Filtrar produtos
+                    const categoryId = this.dataset.category;
+                    filterProductsByCategory(categoryId);
+                });
+            });
+
             // Botão de login
             document.getElementById('login-btn').addEventListener('click', function() {
                 window.location.href = '{{ route("client.login") }}?return=' + encodeURIComponent(window.location.href);
@@ -307,7 +326,7 @@
                 document.getElementById('cart-modal').classList.remove('hidden');
                 loadCart();
             });
-            
+
             // Checkout com Mercado Pago
             document.getElementById('checkout').addEventListener('click', async function() {
                 try {
@@ -318,7 +337,7 @@
                         return;
                     }
 
-                    const response = await fetch('/checkout/mercadopago', {
+                    const response = await fetch('/api/payments/mercadopago/preference', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -326,8 +345,7 @@
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                         },
                         body: JSON.stringify({
-                            store_id: storeId,
-                            client_id: currentClient.id
+                            store_id: storeId
                         })
                     });
 
@@ -706,7 +724,7 @@
             cartContent.innerHTML = items.map(item => `
                 <div class="flex items-center space-x-4 p-4 border-b">
                     <div class="w-16 h-16 bg-gray-200 rounded">
-                        ${item.product.images && item.product.images.length > 0 
+                        ${item.product.images && item.product.images.length > 0
                             ? `<img src="${item.product.images[0]}" alt="${item.product.name}" class="w-full h-full object-cover rounded">`
                             : '<div class="w-full h-full flex items-center justify-center"><svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></div>'
                         }
@@ -781,6 +799,21 @@
             }
 
             Swal.fire(config);
+        }
+
+        // Filtrar produtos por categoria
+        function filterProductsByCategory(categoryId) {
+            const productCards = document.querySelectorAll('.product-card');
+
+            productCards.forEach(card => {
+                const productCategory = card.dataset.category;
+
+                if (categoryId === 'all' || productCategory === categoryId) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
         }
     </script>
 </body>
