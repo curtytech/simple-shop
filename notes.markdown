@@ -35,3 +35,17 @@ cd ~/domains/nome-do-dominio/public_html
 ln -s /home/u233139548/domains/cardapiovirtual.space/storage/app/public storage
 
 ln -s /home/u233139548/domains/you.tec.br/public_html/shop/storage/app/public storage
+
+
+
+
+### Mercado Pago User Test
+Vendedor
+2653728447
+TESTUSER5313515600938305424
+gZUzvKmtLX
+
+Comprador
+2653725947
+TESTUSER215043599712708334
+9Esd62GW7O

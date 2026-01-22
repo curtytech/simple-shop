@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Login - Cliente</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body class="bg-gray-100">
@@ -72,15 +73,30 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    alert(data.message);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Sucesso!',
+                        text: data.message,
+                        confirmButtonText: 'OK'
+                    });
                     // Redirecionar para a página anterior ou home
                     const returnUrl = new URLSearchParams(window.location.search).get('return') || '/';
                     window.location.href = returnUrl;
                 } else {
-                    alert(data.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro!',
+                        text: data.message,
+                        confirmButtonText: 'OK'
+                    });
                 }
             } catch (error) {
-                alert('Erro ao fazer login. Tente novamente.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Erro ao fazer login. Tente novamente.',
+                    confirmButtonText: 'OK'
+                });
             }
         });
     </script>

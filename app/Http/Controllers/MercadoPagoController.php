@@ -72,16 +72,26 @@ class MercadoPagoController extends Controller
             return $url;
         };
 
-        $baseUrl = rtrim(config('app.url'), '/');
-        // URLs padrão para callback da loja
-        $successUrl = $baseUrl . '/payments/mercadopago/callback/success';
-        $failureUrl = $baseUrl . '/payments/mercadopago/callback/failure';
-        $pendingUrl = $baseUrl . '/payments/mercadopago/callback/pending';
+        // Use Laravel's url() helper to generate absolute URLs
+        $successUrl = url('/payments/mercadopago/callback/success');
+        $failureUrl = url('/payments/mercadopago/callback/failure');
+        $pendingUrl = url('/payments/mercadopago/callback/pending');
 
+        // Ensure HTTPS for these URLs
         $successUrl = $ensureHttps($successUrl);
         $failureUrl = $ensureHttps($failureUrl);
         $pendingUrl = $ensureHttps($pendingUrl);
-        $webhookUrl = $ensureHttps($webhookUrl);
+        
+        if ($webhookUrl) {
+            $webhookUrl = $ensureHttps($webhookUrl);
+        }
+
+        if (empty($items)) {
+             if ($request->wantsJson()) {
+                return response()->json(['error' => 'O carrinho está vazio.'], 400);
+            }
+            return back()->with('error', 'O carrinho está vazio.');
+        }
 
         $payload = [
             'items' => $items,
@@ -142,6 +152,27 @@ class MercadoPagoController extends Controller
         }
 
         return redirect()->away($redirectUrl);
+    }
+
+    public function callbackSuccess(Request $request)
+    {
+        return $this->handleCallback($request, 'success');
+    }
+
+    public function callbackFailure(Request $request)
+    {
+        return $this->handleCallback($request, 'failure');
+    }
+
+    public function callbackPending(Request $request)
+    {
+        return $this->handleCallback($request, 'pending');
+    }
+
+    private function handleCallback(Request $request, string $status)
+    {
+        // Redireciona para a home com mensagem
+        return redirect('/')->with('status', 'Status do pagamento: ' . $status);
     }
 
     // public function webhook(Request $request)
