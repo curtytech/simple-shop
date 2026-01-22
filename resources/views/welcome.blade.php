@@ -100,7 +100,7 @@
                             <!-- Store Banner/Header -->
                             <div class="h-32 bg-gradient-to-r from-blue-500 to-purple-600 relative">
                                 @if($store->banner)
-                                    <img src="{{ $store->banner }}" alt="Banner {{ $store->name }}" class="w-full h-full object-cover">
+                                    <img src="{{ Storage::url($store->banner) }}" alt="Banner {{ $store->name }}" class="w-full h-full object-cover">
                                 @endif
                                 <div class="absolute inset-0 bg-black bg-opacity-20"></div>
                             </div>
@@ -110,7 +110,7 @@
                                 <div class="flex items-start -mt-8 mb-4">
                                     <div class="w-16 h-16 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
                                         @if($store->logo)
-                                            <img src="{{ $store->logo }}" alt="Logo {{ $store->name }}" class="w-full h-full object-cover">
+                                            <img src="{{ Storage::url($store->logo) }}" alt="Logo {{ $store->name }}" class="w-full h-full object-cover">
                                         @else
                                             <div class="w-full h-full bg-gray-200 flex items-center justify-center">
                                                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

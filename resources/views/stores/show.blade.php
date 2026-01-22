@@ -16,8 +16,8 @@
 <body class="bg-gray-50">
     <!-- Header com Banner -->
     <div class="relative h-64 bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
-        @if($store->banner && (str_starts_with($store->banner, 'http://') || str_starts_with($store->banner, 'https://')))
-        <img src="{{ $store->banner }}" alt="Banner {{ $store->name }}" class="w-full h-full object-cover">
+        @if($store->banner)
+        <img src="{{ Storage::url($store->banner)  }}" alt="Banner {{ $store->name }}" class="w-full h-full object-cover">
         <div class="absolute inset-0 bg-black bg-opacity-40"></div>
         @endif
 
@@ -26,8 +26,9 @@
             <div class="container mx-auto flex items-end space-x-4">
                 <!-- Logo -->
                 <div class="w-24 h-24 bg-white rounded-full p-2 shadow-lg">
-                    @if($store->logo && (str_starts_with($store->logo, 'http://') || str_starts_with($store->logo, 'https://')))
-                    <img src="{{ $store->logo }}" alt="Logo {{ $store->name }}" class="w-full h-full object-cover rounded-full">
+                    
+                    @if($store->logo)
+                    <img src="{{ Storage::url($store->logo) }}" alt="Logo {{ $store->name }}" class="w-full h-full object-cover rounded-full">
                     @else
                     <div class="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,7 +281,7 @@
         // Variáveis globais
         let currentClient = null;
         const storeId = @json($store->id);
-
+        console.log(storeId, 'storeId');
         document.addEventListener('DOMContentLoaded', function() {
             // Verificar autenticação do cliente
             checkClientAuth();
