@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\Client;
 use App\Models\Payment;
 use App\Models\User;
+use App\Models\Sell;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -30,6 +32,9 @@ class MercadoPagoController extends Controller
         $cart = Cart::where('client_id', $clientId)
             ->where('user_id', $storeId)      // garante carrinho da loja certa
             ->with('items.product')           // carrega itens + produto
+            ->firstOrFail();
+
+        $client = Client::where('client_id', $clientId)
             ->firstOrFail();
 
         $cartItems = $cart->items;
@@ -72,22 +77,28 @@ class MercadoPagoController extends Controller
             return $url;
         };
 
-        // Use Laravel's url() helper to generate absolute URLs
-        $successUrl = url('/payments/mercadopago/callback/success');
-        $failureUrl = url('/payments/mercadopago/callback/failure');
-        $pendingUrl = url('/payments/mercadopago/callback/pending');
+
+
+        //  // Use Laravel's url() helper to generate absolute URLs
+        // $successUrl = url('/payments/mercadopago/callback/success');
+        // $failureUrl = url('/payments/mercadopago/callback/failure');
+        // $pendingUrl = url('/payments/mercadopago/callback/pending');
+        // Use Laravel's route() helper to generate absolute URLs
+        $successUrl = route('mercadopago.callback.success');
+        $failureUrl = route('mercadopago.callback.failure');
+        $pendingUrl = route('mercadopago.callback.pending');
 
         // Ensure HTTPS for these URLs
         $successUrl = $ensureHttps($successUrl);
         $failureUrl = $ensureHttps($failureUrl);
         $pendingUrl = $ensureHttps($pendingUrl);
-        
+
         if ($webhookUrl) {
             $webhookUrl = $ensureHttps($webhookUrl);
         }
 
         if (empty($items)) {
-             if ($request->wantsJson()) {
+            if ($request->wantsJson()) {
                 return response()->json(['error' => 'O carrinho está vazio.'], 400);
             }
             return back()->with('error', 'O carrinho está vazio.');
@@ -96,8 +107,8 @@ class MercadoPagoController extends Controller
         $payload = [
             'items' => $items,
             'payer' => [
-                'name' => 'Cliente', // Pode ser melhorado se tiver dados do cliente
-                'email' => 'cliente@email.com', // Pode ser melhorado
+                'name' => $client->name,
+                'email' => $client->email,
             ],
             'back_urls' => [
                 'success' => $successUrl,
@@ -113,6 +124,8 @@ class MercadoPagoController extends Controller
                 'cart_id' => $cart->id,
             ],
         ];
+
+        Log::info('Payload Mercado Pago:', $payload);
 
         $response = Http::withToken($accessToken)->post('https://api.mercadopago.com/checkout/preferences', $payload);
 
@@ -151,11 +164,19 @@ class MercadoPagoController extends Controller
             ]);
         }
 
+        // Não criamos a venda aqui, apenas redirecionamos.
+        // A venda será criada no callback ou webhook após confirmação do pagamento.
+
         return redirect()->away($redirectUrl);
     }
 
     public function callbackSuccess(Request $request)
     {
+        // Tenta finalizar o pedido se o status for aprovado
+        if ($request->collection_status === 'approved' && $request->external_reference) {
+            $this->finalizeOrder($request->external_reference, $request->payment_id, 'approved');
+        }
+        
         return $this->handleCallback($request, 'success');
     }
 
@@ -166,6 +187,10 @@ class MercadoPagoController extends Controller
 
     public function callbackPending(Request $request)
     {
+        if ($request->collection_status === 'pending' && $request->external_reference) {
+            $this->finalizeOrder($request->external_reference, $request->payment_id, 'pending');
+        }
+
         return $this->handleCallback($request, 'pending');
     }
 
@@ -173,6 +198,46 @@ class MercadoPagoController extends Controller
     {
         // Redireciona para a home com mensagem
         return redirect('/')->with('status', 'Status do pagamento: ' . $status);
+    }
+
+    /**
+     * Finaliza o pedido criando a venda e "removendo" o carrinho
+     */
+    private function finalizeOrder($cartId, $paymentId, $status = 'pending')
+    {
+        $cart = Cart::find($cartId);
+
+        if (!$cart) {
+            Log::warning("Carrinho {$cartId} não encontrado ao finalizar pedido {$paymentId}.");
+            return;
+        }
+
+        // Verifica se já existe venda para este carrinho (evita duplicidade)
+        $existingSell = Sell::where('cart_id', $cart->id)->first();
+        if ($existingSell) {
+            // Se já existe, apenas atualiza status se necessário
+            if ($existingSell->status !== 'approved' && $status === 'approved') {
+                $existingSell->update(['status' => 'approved', 'mercadopago_preference_id' => $paymentId]);
+            }
+            return;
+        }
+
+        try {
+            Sell::create([
+                'client_id' => $cart->client_id,
+                'user_id' => $cart->user_id,
+                'cart_id' => $cart->id,
+                'total' => $cart->total,
+                'status' => $status === 'approved' ? 'approved' : 'pending',
+                'mercadopago_preference_id' => $paymentId, // Usando o ID do pagamento aqui
+            ]);
+
+            // Soft delete no carrinho para manter histórico mas limpar da sessão atual
+            $cart->delete();
+
+        } catch (\Exception $e) {
+            Log::error("Erro ao criar venda para carrinho {$cartId}: " . $e->getMessage());
+        }
     }
 
     // public function webhook(Request $request)

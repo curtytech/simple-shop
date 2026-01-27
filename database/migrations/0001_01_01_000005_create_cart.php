@@ -11,25 +11,30 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('carts', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Loja
-            $table->timestamps();
-            
-            $table->unique(['client_id', 'user_id']); // Um carrinho por cliente por loja
-        });
+        // if (!Schema::hasTable('carts')) {
+            Schema::create('carts', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('client_id')->constrained()->onDelete('cascade');
+                $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Loja
+                $table->timestamps();
+                $table->softDeletes();
+                
+                $table->unique(['client_id', 'user_id']); // Um carrinho por cliente por loja
+            });
+        // }
 
-        Schema::create('cart_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('cart_id')->constrained()->onDelete('cascade');
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->integer('quantity')->default(1);
-            $table->decimal('price', 10, 2); // Preço no momento da adição
-            $table->timestamps();
-            
-            $table->unique(['cart_id', 'product_id']); // Um item por produto por carrinho
-        });
+        // if (!Schema::hasTable('cart_items')) {
+            Schema::create('cart_items', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('cart_id')->constrained()->onDelete('cascade');
+                $table->foreignId('product_id')->constrained()->onDelete('cascade');
+                $table->integer('quantity')->default(1);
+                $table->decimal('price', 10, 2); // Preço no momento da adição
+                $table->timestamps();
+                
+                $table->unique(['cart_id', 'product_id']); // Um item por produto por carrinho
+            });
+        // }
     }
 
     /**
