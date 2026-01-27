@@ -55,7 +55,7 @@ class SellResource extends Resource
                 Tables\Columns\TextColumn::make('store.name')
                     ->label('Loja')
                     ->searchable()
-                    ->visible(fn () => auth()->check() && auth()->user()->role === 'admin'),
+                    ->visible(fn() => auth()->check() && auth()->user()->role === 'admin'),
                 Tables\Columns\TextColumn::make('total')
                     ->label('Total')
                     ->money('BRL')
@@ -63,12 +63,14 @@ class SellResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'approved' => 'success',
                         'pending' => 'warning',
                         'failure' => 'danger',
                         default => 'gray',
                     }),
+                Tables\Columns\TextColumn::make('mercadopago_preference_id')
+                    ->label('Mercado Pago ID'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Data')
                     ->dateTime('d/m/Y H:i')

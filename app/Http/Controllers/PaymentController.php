@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Sell;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
@@ -12,12 +13,13 @@ class PaymentController extends Controller
 {
     public function createMercadoPagoPreference(Request $request)
     {
+
         $validated = $request->validate([
-            'store_id' => ['required','integer','exists:users,id'],
+            'store_id' => ['required', 'integer', 'exists:users,id'],
             'items' => ['array'], // opcional se derivar do carrinho
-            'success_url' => ['nullable','url'],
-            'failure_url' => ['nullable','url'],
-            'pending_url' => ['nullable','url'],
+            'success_url' => ['nullable', 'url'],
+            'failure_url' => ['nullable', 'url'],
+            'pending_url' => ['nullable', 'url'],
         ]);
 
         $store = User::findOrFail($validated['store_id']);
@@ -73,7 +75,7 @@ class PaymentController extends Controller
         $pendingUrl = !empty($validated['pending_url'] ?? null) ? $validated['pending_url'] : $defaultPending;
 
         // Validação extra para URLs finais (evita erro do MP)
-        foreach ([ 'success' => $successUrl, 'failure' => $failureUrl, 'pending' => $pendingUrl ] as $key => $url) {
+        foreach (['success' => $successUrl, 'failure' => $failureUrl, 'pending' => $pendingUrl] as $key => $url) {
             if (!filter_var($url, FILTER_VALIDATE_URL)) {
                 return response()->json([
                     'message' => "URL inválida para back_urls.{$key}: {$url}. Configure APP_URL com um domínio público (https) ou envie URLs válidas no payload.",
@@ -125,6 +127,15 @@ class PaymentController extends Controller
         }
 
         $data = $response->json();
+
+        Sell::create([
+            'client_id' => auth('client')->id(),
+            'user_id' => $store->id,
+            'cart_id' => $cart->id,
+            'total' => $cart->total,
+            'status' => 'pending',
+            'mercadopago_preference_id' => $data['id'] ?? null, // Usando o ID do pagamento aqui
+        ]);
 
         return response()->json([
             'init_point' => $data['init_point'] ?? null,

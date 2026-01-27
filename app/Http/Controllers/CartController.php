@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Sell;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -56,7 +57,6 @@ class CartController extends Controller
                 'cart_total' => $cart->fresh()->total,
                 'cart_quantity' => $cart->fresh()->total_quantity
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -104,7 +104,6 @@ class CartController extends Controller
                 'cart_total' => $cart->fresh()->total,
                 'cart_quantity' => $cart->fresh()->total_quantity
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -135,7 +134,6 @@ class CartController extends Controller
                 'cart_total' => $cart->fresh()->total,
                 'cart_quantity' => $cart->fresh()->total_quantity
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -173,7 +171,6 @@ class CartController extends Controller
                     ]
                 ]
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -202,7 +199,6 @@ class CartController extends Controller
                 'success' => true,
                 'message' => 'Carrinho limpo com sucesso!'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

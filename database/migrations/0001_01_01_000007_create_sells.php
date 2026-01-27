@@ -15,9 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Loja
-            $table->foreignId('cart_id')->constrained()->onDelete('cascade');
-            $table->decimal('total', 10, 2); // Total da venda
+            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->integer('quantity'); // Quantidade vendida
             $table->string('status')->default('pending'); // Status da venda
+            $table->decimal('price', 10, 2); // Preço no momento da adição
             $table->string('mercadopago_payment_id')->nullable();
             $table->string('mercadopago_preference_id')->nullable(); // ID da preferência do MP
             $table->string('mercadopago_status')->nullable();
