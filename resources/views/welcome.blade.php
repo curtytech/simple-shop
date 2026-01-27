@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Shop - Marketplace de Lojas</title>
+    <title>Shop You - Sua loja online</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
@@ -24,7 +24,10 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <h1 class="text-2xl font-bold text-gray-900">Simple Shop</h1>
+                    <img src="/favicon.ico" class="h-9 w-9 mr-2" alt="">
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 bg-clip-text text-transparent">
+                        ShopYou
+                    </h1>
                     <span class="ml-2 text-sm text-gray-500">Marketplace</span>
                 </div>
                 <nav class="hidden md:flex space-x-8">
@@ -37,7 +40,7 @@
     </header>
 
     <!-- Hero Section -->
-    <section class="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white">
+    <section class="bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
             <div class="text-center">
                 <h2 class="text-4xl md:text-6xl font-bold mb-6">
