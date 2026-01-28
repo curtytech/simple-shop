@@ -1,16 +1,33 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-
+<html lang="pt-BR" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $store->name }}</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- DARK MODE CONFIG (ISOLADO) -->
+    <script>
+        tailwind.config = { darkMode: 'class' }
+
+        (function () {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+    </script>
 </head>
 
 <body class="bg-gray-50">
@@ -80,7 +97,7 @@
         <!-- Filtros de Categoria -->
         @if($store->categories->count() > 0)
         <div class="mb-8">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Categorias</h2>
+            <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Categorias</h2>
             <div class="flex flex-wrap gap-2 mb-6">
                 <button class="category-filter active px-4 py-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors" data-category="all">
                     Todas
@@ -97,7 +114,7 @@
         <!-- Produtos -->
         @if($store->products->count() > 0)
         <div class="mb-8">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Produtos</h2>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 dark:text-gray-200">Produtos</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="products-grid">
                 @foreach($store->products as $product)
                 <div class="product-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow" data-category="{{ $product->category_id }}">
@@ -135,9 +152,9 @@
                         @if($product->stock > 0)
                         <div class="flex items-center space-x-2">
                             <div class="flex items-center border rounded-lg">
-                                <button class="quantity-btn minus px-3 py-1 text-gray-600 hover:bg-gray-100" data-product="{{ $product->id }}">-</button>
-                                <input type="number" class="quantity-input w-16 text-center border-0 focus:ring-0" value="1" min="1" max="{{ $product->stock }}" data-product="{{ $product->id }}">
-                                <button class="quantity-btn plus px-3 py-1 text-gray-600 hover:bg-gray-100" data-product="{{ $product->id }}">+</button>
+                                <button class="quantity-btn minus px-3 py-1 text-gray-600 dark:text-black hover:bg-gray-100" data-product="{{ $product->id }}">-</button>
+                                <input type="number" class="quantity-input w-16 text-center border-0 focus:ring-0 dark:text-black" value="1" min="1" max="{{ $product->stock }}" data-product="{{ $product->id }}">
+                                <button class="quantity-btn plus px-3 py-1 text-gray-600 dark:text-black hover:bg-gray-100" data-product="{{ $product->id }}">+</button>
                             </div>
                             <button class="add-to-cart flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors" data-product="{{ $product->id }}">
                                 Adicionar
@@ -161,7 +178,7 @@
     <!-- Modal de Login/Registro -->
     <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-lg max-w-md w-full p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold">Faça login para continuar</h3>
                     <button id="close-auth-modal" class="text-gray-400 hover:text-gray-600">
@@ -170,7 +187,7 @@
                         </svg>
                     </button>
                 </div>
-                <p class="text-gray-600 mb-6">Você precisa ter uma conta para adicionar produtos ao carrinho.</p>
+                <p class="text-gray-600 dark:text-gray-300 mb-6">Você precisa ter uma conta para adicionar produtos ao carrinho.</p>
                 <div class="space-y-3">
                     <a href="{{ route('client.login') }}?return={{ urlencode(request()->fullUrl()) }}"
                         class="block w-full bg-blue-500 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
