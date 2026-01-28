@@ -218,7 +218,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div>
                     <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                        Por que escolher o Simple Shop?
+                        Por que escolher o Shop You?
                     </h3>
                     <div class="space-y-6">
                         <div class="flex items-start">
@@ -258,7 +258,7 @@
                 </div>
                 <div class="lg:text-center">
                     <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 text-white">
-                        <h4 class="text-2xl font-bold mb-4">Junte-se ao Simple Shop</h4>
+                        <h4 class="text-2xl font-bold mb-4">Junte-se ao Shop You</h4>
                         <p class="text-blue-100 mb-6">Descubra produtos incríveis de lojas locais e apoie o comércio da sua região.</p>
                         <a href="#lojas" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors inline-block">
                             Começar Agora
@@ -274,7 +274,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
-                    <h5 class="text-xl font-bold mb-4">Simple Shop</h5>
+                    <h5 class="text-xl font-bold mb-4">Shop You</h5>
                     <p class="text-gray-400 mb-4">Conectando você às melhores lojas locais com segurança e praticidade.</p>
                 </div>
                 <div>
@@ -291,7 +291,7 @@
                 </div>
             </div>
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; {{ date('Y') }} Simple Shop. Todos os direitos reservados.</p>
+                <p>&copy; {{ date('Y') }} Shop You. Todos os direitos reservados.</p>
             </div>
         </div>
     </footer>

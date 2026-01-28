@@ -21,13 +21,13 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
     
-    protected static ?string $navigationLabel = 'Usuários';
+    protected static ?string $navigationLabel = 'Lojas';
     
-    protected static ?string $modelLabel = 'Usuário';
+    protected static ?string $modelLabel = 'Loja';
     
-    protected static ?string $pluralModelLabel = 'Usuários';
+    protected static ?string $pluralModelLabel = 'Lojas';
 
     public static function form(Form $form): Form
     {

@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // if (!Schema::hasTable('carts')) {
         Schema::create('carts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Loja
             $table->timestamps();
-            
             $table->unique(['client_id', 'user_id']); // Um carrinho por cliente por loja
         });
+        // }
 
+        // if (!Schema::hasTable('cart_items')) {
         Schema::create('cart_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cart_id')->constrained()->onDelete('cascade');
@@ -27,9 +29,10 @@ return new class extends Migration
             $table->integer('quantity')->default(1);
             $table->decimal('price', 10, 2); // Preço no momento da adição
             $table->timestamps();
-            
-            $table->unique(['cart_id', 'product_id']); // Um item por produto por carrinho
+            $table->softDeletes();
+            // $table->unique(['cart_id', 'product_id']); // Um item por produto por carrinho
         });
+        // }
     }
 
     /**
