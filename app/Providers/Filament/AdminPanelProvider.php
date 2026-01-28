@@ -6,6 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -55,11 +56,16 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->navigationItems([
-                \Filament\Navigation\NavigationItem::make('Home')
+                NavigationItem::make('Home')
                     ->url('/')
                     ->icon('heroicon-o-home')
                     ->sort(-1) // Ensures it's the first item
                     ->openUrlInNewTab(),
+                NavigationItem::make('Ver Minha Página')
+                    ->url(fn(): string => route('store.show', auth()->user()->slug))
+                    ->icon('heroicon-o-eye')
+                    ->openUrlInNewTab()
+                    ->sort(100),
             ]);
     }
 }

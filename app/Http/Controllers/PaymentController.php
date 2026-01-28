@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sell;
+use App\Models\Cart;
+use App\Models\OldCart;
+use App\Models\OldCartItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
@@ -83,7 +86,7 @@ class PaymentController extends Controller
             }
         }
 
-        $externalReference = 'store:' . $store->id . '|client:' . (auth('client')->id() ?? 'guest');
+        $externalReference = (string) $cart->id;
         // Limitar descriptor a 22 caracteres ASCII (requisito do MP)
         $descriptor = Str::of($store->name)->ascii()->substr(0, 22)->trim();
 
@@ -128,13 +131,30 @@ class PaymentController extends Controller
 
         $data = $response->json();
 
+        $oldCart = OldCart::create([
+            'client_id' => auth('client')->id(),
+            'user_id' => $store->id,
+            'total' => $cart->total,
+            'status' => 'pending',
+            'mercadopago_preference_id' => $data['id'] ?? null,
+        ]);
+
+        foreach ($cart->items as $item) {
+            OldCartItem::create([
+                'old_cart_id' => $oldCart->id,
+                'product_id' => $item->product_id,
+                'quantity' => $item->quantity,
+                'price' => $item->product->price,
+            ]);
+        }
+
         Sell::create([
             'client_id' => auth('client')->id(),
             'user_id' => $store->id,
-            'cart_id' => $cart->id,
+            'old_cart_id' => $oldCart->id,
             'total' => $cart->total,
             'status' => 'pending',
-            'mercadopago_preference_id' => $data['id'] ?? null, // Usando o ID do pagamento aqui
+            'mercadopago_preference_id' => $data['id'] ?? null,
         ]);
 
         return response()->json([
@@ -187,5 +207,77 @@ class PaymentController extends Controller
 
         // Aqui você pode atualizar pedido/carrinho dessa store
         return response()->json(['ok' => true], 200);
+    }
+
+    public function callbackSuccess(Request $request)
+    {
+        Log::info('Mercado Pago Callback Success:', $request->all());
+
+        // Tenta finalizar o pedido se o status for aprovado
+        if ($request->collection_status === 'approved' && $request->external_reference) {
+            $this->finalizeOrder($request->external_reference, $request->payment_id, 'approved');
+        } else {
+            Log::warning('Mercado Pago Callback: status não aprovado ou sem referência', $request->all());
+        }
+
+        return $this->handleCallback($request, 'success');
+    }
+
+    public function callbackFailure(Request $request)
+    {
+        return $this->handleCallback($request, 'failure');
+    }
+
+    public function callbackPending(Request $request)
+    {
+        if ($request->collection_status === 'pending' && $request->external_reference) {
+            $this->finalizeOrder($request->external_reference, $request->payment_id, 'pending');
+        }
+
+        return $this->handleCallback($request, 'pending');
+    }
+
+    private function handleCallback(Request $request, string $status)
+    {
+        $redirectUrl = '/';
+
+        if ($request->external_reference) {
+            // A external_reference agora é o ID do carrinho
+            $cart = Cart::find($request->external_reference);
+            // Se encontrou o carrinho e a loja associada, redireciona para a loja
+            if ($cart && $cart->store) {
+                $redirectUrl = route('store.show', ['slug' => $cart->store->slug]);
+            }
+        }
+
+        return redirect($redirectUrl)->with('status', 'Status do pagamento: ' . $status);
+    }
+
+    /**
+     * Finaliza o pedido criando a venda e "removendo" o carrinho
+     */
+    private function finalizeOrder($cartId, $paymentId, $status = 'pending')
+    {
+        // $cartId aqui é a external_reference, que agora passamos como o ID do carrinho ATUAL (Cart)
+        // Mas a Venda (Sell) está vinculada ao OldCart.
+        // Precisamos encontrar a Venda pelo paymentId (mercadopago_preference_id)
+        
+        $sell = Sell::where('mercadopago_preference_id', $paymentId)->first();
+
+        if ($sell) {
+             if ($sell->status !== 'approved' && $status === 'approved') {
+                $sell->update(['status' => 'approved']);
+            }
+        } else {
+             Log::warning("Venda não encontrada para pagamento {$paymentId}.");
+             // Fallback: tentar achar pelo carrinho se a lógica mudou? 
+             // Como criamos a venda antes, ela DEVE existir.
+        }
+        
+        // Limpa o carrinho atual
+        $cart = Cart::find($cartId);
+        if ($cart) {
+             $cart->items()->delete();
+        }
     }
 }

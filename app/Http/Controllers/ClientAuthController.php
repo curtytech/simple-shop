@@ -108,6 +108,59 @@ class ClientAuthController extends Controller
         }
     }
 
+    public function update(Request $request)
+    {
+        $client = Auth::guard('client')->user();
+
+        if (!$client) {
+            return response()->json(['success' => false, 'message' => 'Não autorizado.'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:clients,email,' . $client->id,
+            'celphone' => 'required|string|max:20',
+            'password' => 'nullable|string|min:8|confirmed',
+            'address' => 'required|string|max:255',
+            'number' => 'required|string|max:10',
+            'city' => 'required|string|max:100',
+            'state' => 'required|string|max:100',
+            'country' => 'required|string|max:100',
+            'zipcode' => 'required|string|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dados inválidos.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $data = $request->except(['password', 'password_confirmation']);
+
+            if ($request->filled('password')) {
+                $data['password'] = Hash::make($request->password);
+            }
+
+            $client->update($data);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Dados atualizados com sucesso!',
+                'client' => $client
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erro ao atualizar cliente: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao atualizar dados.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function logout(Request $request)
     {
         Auth::guard('client')->logout();

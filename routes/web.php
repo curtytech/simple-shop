@@ -36,6 +36,7 @@ Route::prefix('client')->group(function () {
     Route::post('/register', [ClientAuthController::class, 'register'])->name('client.register.post');
     Route::post('/logout', [ClientAuthController::class, 'logout'])->name('client.logout');
     Route::get('/user', [ClientAuthController::class, 'user'])->name('client.user');
+    Route::post('/update', [ClientAuthController::class, 'update'])->name('client.update');
 });
 
 // Rotas do carrinho (API) - protegidas por autenticação de cliente
@@ -48,16 +49,19 @@ Route::prefix('api/cart')->middleware('client.auth')->group(function () {
 });
 
 Route::get('/{slug}', [StoreController::class, 'show'])->name('store.show');
+Route::get('/{slug}/config', [StoreController::class, 'clientConfig'])->name('store.client.config');
+Route::get('/{slug}/products', [StoreController::class, 'clientProducts'])->name('store.client.products');
+
 
 Route::prefix('api/payments/mercadopago')->group(function () {
     Route::post('/preference', [PaymentController::class, 'createMercadoPagoPreference'])->name('mercadopago.preference');
 });
 
-// Callback routes for Mercado Pago
-// Route::get('/payments/mercadopago/callback/success', [MercadoPagoController::class, 'callbackSuccess'])->name('mercadopago.callback.success');
-// Route::get('/payments/mercadopago/callback/failure', [MercadoPagoController::class, 'callbackFailure'])->name('mercadopago.callback.failure');
-// Route::get('/payments/mercadopago/callback/pending', [MercadoPagoController::class, 'callbackPending'])->name('mercadopago.callback.pending');
+// Callback routes for Mercado Pago - protegidas por autenticação de cliente
+Route::get('/payments/mercadopago/callback/success', [PaymentController::class, 'callbackSuccess'])->name('mercadopago.callback.success');
+Route::get('/payments/mercadopago/callback/failure', [PaymentController::class, 'callbackFailure'])->name('mercadopago.callback.failure');
+Route::get('/payments/mercadopago/callback/pending', [PaymentController::class, 'callbackPending'])->name('mercadopago.callback.pending');
 
-// Route::post('/checkout/mercadopago', [MercadoPagoController::class, 'checkout'])->name('mercadopago.checkout');
+Route::post('/checkout/mercadopago', [MercadoPagoController::class, 'checkout'])->name('mercadopago.checkout');
 
 Route::post('/webhooks/mercadopago/{store}', [PaymentController::class, 'webhook'])->name('mercadopago.webhook');

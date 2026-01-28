@@ -13,7 +13,7 @@ class Sell extends Model
     protected $fillable = [
         'client_id',
         'user_id',
-        'cart_id',
+        'old_cart_id',
         'total',
         'status',
         'mercadopago_preference_id',
@@ -31,6 +31,15 @@ class Sell extends Model
     {
         return $this->belongsTo(Client::class);
     }
+    /**
+     * Get the items from the associated old cart.
+     * This acts as a direct relationship for easier access in Filament.
+     */
+    public function items()
+    {
+        return $this->hasMany(OldCartItem::class, 'old_cart_id', 'old_cart_id');
+    }
+
 
     /**
      * Get the store (user) where the purchase was made.
@@ -43,8 +52,8 @@ class Sell extends Model
     /**
      * Get the cart associated with the sell.
      */
-    public function cart(): BelongsTo
+    public function oldCart(): BelongsTo
     {
-        return $this->belongsTo(Cart::class);
+        return $this->belongsTo(OldCart::class);
     }
 }
