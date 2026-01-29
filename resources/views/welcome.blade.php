@@ -21,7 +21,7 @@
 
 <body class="bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100">
   <!-- HEADER -->
-  <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+  <header class="bg-white  shadow-sm border-b border-gray-200   dark:border-slate-950 dark:bg-slate-900">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
 
@@ -30,7 +30,6 @@
           <h1 class="text-2xl font-bold bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 bg-clip-text text-transparent">
             ShopYou
           </h1>
-          <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">Marketplace</span>
         </div>
 
         <nav class="hidden md:flex space-x-8 items-center">
@@ -38,10 +37,8 @@
           <a href="#categorias" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Categorias</a>
           <a href="#sobre" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Sobre</a>
 
-          <button
-            onclick="toggleTheme()"
-            class="p-2 rounded-lg border border-gray-300 dark:border-gray-600">
-            🌙
+          <button onclick="toggleTheme()" class="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-lg">
+            <span id="theme-icon">🌙</span>
           </button>
         </nav>
 
@@ -78,7 +75,7 @@
   </section>
 
   <!-- STATS -->
-  <section class="py-16 bg-white dark:bg-gray-800">
+  <section class="py-16 bg-white dark:bg-slate-900">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
@@ -103,7 +100,7 @@
     </div>
   </section>
   <!-- LOJAS -->
-  <section id="lojas" class="py-20 bg-gray-50 dark:bg-gray-900">
+  <section id="lojas" class="py-20 bg-gray-50 dark:bg-slate-950">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
       <!-- TÍTULO -->
@@ -218,14 +215,14 @@
   </section>
 
   <!-- CATEGORIAS -->
-  <section id="categorias" class="py-20 bg-base">
+  <section id="categorias" class="py-20 bg-base dark:bg-slate-900">
     <div class="max-w-7xl mx-auto px-4">
 
       <div class="text-center mb-12">
-        <h3 class="text-4xl font-bold text-base mb-2">
+        <h3 id="categorias" class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
           Categorias Populares
         </h3>
-        <p class="text-muted">
+        <p class="text-muted text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
           Explore os produtos por categoria
         </p>
       </div>
@@ -269,7 +266,7 @@
   </section>
 
   <!-- About Section -->
-  <section id="sobre" class="py-20 bg-gray-50 dark:bg-gray-900">
+  <section id="sobre" class="py-20 bg-gray-50 dark:bg-slate-950">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
@@ -364,7 +361,7 @@
 
 
   <!-- Footer -->
-  <footer class="bg-gray-900 text-white py-12">
+  <footer class="bg-gray-900 text-white dark:bg-slate-900   py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
@@ -390,42 +387,45 @@
     </div>
   </footer>
 
-  <script>
-    function toggleTheme() {
-      const html = document.documentElement
+ <script>
+  const themeIcon = document.getElementById('theme-icon')
 
-      if (html.classList.contains("dark")) {
-        html.classList.remove("dark")
-        localStorage.setItem("theme", "light")
-      } else {
-        html.classList.add("dark")
-        localStorage.setItem("theme", "dark")
-      }
+  function updateThemeIcon() {
+    if (document.documentElement.classList.contains('dark')) {
+      themeIcon.textContent = '☀️' 
+    } else {
+      themeIcon.textContent = '🌙' 
+    }
+  }
+
+  (function() {
+    const STORAGE_KEY = 'theme'
+    const root = document.documentElement
+
+    const savedTheme = localStorage.getItem(STORAGE_KEY)
+
+    if (
+      savedTheme === 'dark' ||
+      (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    ) {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
     }
 
-    (function() {
-      const STORAGE_KEY = 'theme'
-      const root = document.documentElement
 
-      // aplica tema inicial
-      const savedTheme = localStorage.getItem(STORAGE_KEY)
+    updateThemeIcon()
 
-      if (
-        savedTheme === 'dark' ||
-        (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
-      ) {
-        root.classList.add('dark')
-      } else {
-        root.classList.remove('dark')
-      }
+    window.toggleTheme = function() {
+      const isDark = root.classList.toggle('dark')
+      localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light')
 
-      // função global
-      window.toggleTheme = function() {
-        const isDark = root.classList.toggle('dark')
-        localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light')
-      }
-    })();
-  </script>
+
+      updateThemeIcon()
+    }
+  })()
+</script>
+
 
 </body>
 
