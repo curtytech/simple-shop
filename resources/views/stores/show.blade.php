@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,26 +12,17 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- DARK MODE CONFIG (ISOLADO) -->
     <script>
-        tailwind.config = { darkMode: 'class' }
-
-        (function () {
-            const theme = localStorage.getItem('theme');
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
+        tailwind = {
+            config: {
+                darkMode: 'class'
             }
-        })();
-
-        function toggleTheme() {
-            const html = document.documentElement;
-            const isDark = html.classList.toggle('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
         }
     </script>
+
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100">
     <!-- Header com Banner -->
     <div class="relative h-64 bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
         @if($store->banner)
@@ -43,7 +35,7 @@
             <div class="container mx-auto flex items-end space-x-4">
                 <!-- Logo -->
                 <div class="w-24 h-24 bg-white rounded-full p-2 shadow-lg">
-                    
+
                     @if($store->logo)
                     <img src="{{ Storage::url($store->logo) }}" alt="Logo {{ $store->name }}" class="w-full h-full object-cover rounded-full">
                     @else
@@ -295,9 +287,47 @@
     </footer>
 
     <script>
+        function toggleTheme() {
+            const html = document.documentElement
+
+            if (html.classList.contains("dark")) {
+                html.classList.remove("dark")
+                localStorage.setItem("theme", "light")
+            } else {
+                html.classList.add("dark")
+                localStorage.setItem("theme", "dark")
+            }
+        }
+
+        (function() {
+            const STORAGE_KEY = 'theme'
+            const root = document.documentElement
+
+            // aplica tema inicial
+            const savedTheme = localStorage.getItem(STORAGE_KEY)
+
+            if (
+                savedTheme === 'dark' ||
+                (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
+            ) {
+                root.classList.add('dark')
+            } else {
+                root.classList.remove('dark')
+            }
+
+            // função global
+            window.toggleTheme = function() {
+                const isDark = root.classList.toggle('dark')
+                localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light')
+            }
+        })();
+    </script>
+
+
+    <script>
         // Variáveis globais
         let currentClient = null;
-        const storeId = @json($store->id);
+        const storeId = @json($store-> id);
         console.log(storeId, 'storeId');
         document.addEventListener('DOMContentLoaded', function() {
             // Verificar autenticação do cliente
