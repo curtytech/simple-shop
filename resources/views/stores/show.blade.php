@@ -1,19 +1,109 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $store->name }}</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
 
-<body class="bg-gray-50">
+    <script>
+        tailwind = {
+            config: {
+                darkMode: 'class'
+            }
+        }
+    </script>
+
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100">
+     <!-- HEADER -->
+  <header class="bg-white shadow-sm border-b border-gray-200 dark:border-slate-950 dark:bg-slate-900">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+
+      <!-- LOGO -->
+      <div class="flex items-center">
+        <img src="/favicon.ico" class="h-9 w-9 mr-2" alt="">
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 bg-clip-text text-transparent">
+          ShopYou
+        </h1>
+      </div>
+
+      <!-- NAV PRINCIPAL (HOME / PRODUTOS) -->
+      <nav class="hidden md:flex items-center gap-8">
+
+        <a href="#categories-title" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+          Categorias
+        </a>
+
+        <a href="#products-title" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+          Produtos
+        </a>
+
+        <a href="#sobre" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+          Sobre
+        </a>
+      </nav>
+
+      <!-- NAV DE AÇÕES -->
+      <div class="hidden md:flex items-center gap-4">
+
+      <!-- Perfil -->
+        <button class=" mb-1  p-2 text-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+          👤
+        </button>
+
+       <!-- Carrinho (usa a lógica existente) -->
+        <button
+        id="cart-btn"
+        class="relative p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
+        >
+
+        <!-- Ícone -->
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 3h2l.4 2M7 13h10l4-8H5.4
+                m0 0L7 13m0 0l-1.5 6
+                M7 13l-1.5 6m0 0h9
+                M17 13v6a2 2 0 01-2 2
+                H9a2 2 0 01-2-2v-6"
+            />
+        </svg>
+
+        <!-- Badge (continua funcionando) -->
+        <span
+            id="cart-count"
+            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full hidden"
+        >
+            0
+        </span>
+        </button>
+
+        <!-- Divider -->
+        <span class="h-6 w-px bg-gray-200 dark:bg-gray-700"></span>
+
+        <!-- Toggle Theme -->
+        <button
+          onclick="toggleTheme()"
+          class="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-lg"
+        >
+          <span id="theme-icon">🌙</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</header>
+
     <!-- Header com Banner -->
     <div class="relative h-64 bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
         @if($store->banner)
@@ -26,7 +116,7 @@
             <div class="container mx-auto flex items-end space-x-4">
                 <!-- Logo -->
                 <div class="w-24 h-24 bg-white rounded-full p-2 shadow-lg">
-                    
+
                     @if($store->logo)
                     <img src="{{ Storage::url($store->logo) }}" alt="Logo {{ $store->name }}" class="w-full h-full object-cover rounded-full">
                     @else
@@ -63,13 +153,7 @@
                     </button>
 
                     <!-- Carrinho -->
-                    <button id="cart-btn" class="bg-white text-gray-800 px-4 py-2 rounded-lg shadow-lg hover:bg-gray-100 transition-colors flex items-center space-x-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"></path>
-                        </svg>
-                        <span>Carrinho</span>
-                        <span id="cart-count" class="bg-red-500 text-white text-xs px-2 py-1 rounded-full hidden">0</span>
-                    </button>
+                   
                 </div>
             </div>
         </div>
@@ -80,7 +164,7 @@
         <!-- Filtros de Categoria -->
         @if($store->categories->count() > 0)
         <div class="mb-8">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Categorias</h2>
+            <h2 id="categories-title" class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Categorias</h2>
             <div class="flex flex-wrap gap-2 mb-6">
                 <button class="category-filter active px-4 py-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors" data-category="all">
                     Todas
@@ -97,7 +181,7 @@
         <!-- Produtos -->
         @if($store->products->count() > 0)
         <div class="mb-8">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Produtos</h2>
+            <h2 id="products-title" class="text-2xl font-semibold text-gray-800 mb-6 dark:text-gray-200">Produtos</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="products-grid">
                 @foreach($store->products as $product)
                 <div class="product-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow" data-category="{{ $product->category_id }}">
@@ -135,9 +219,9 @@
                         @if($product->stock > 0)
                         <div class="flex items-center space-x-2">
                             <div class="flex items-center border rounded-lg">
-                                <button class="quantity-btn minus px-3 py-1 text-gray-600 hover:bg-gray-100" data-product="{{ $product->id }}">-</button>
-                                <input type="number" class="quantity-input w-16 text-center border-0 focus:ring-0" value="1" min="1" max="{{ $product->stock }}" data-product="{{ $product->id }}">
-                                <button class="quantity-btn plus px-3 py-1 text-gray-600 hover:bg-gray-100" data-product="{{ $product->id }}">+</button>
+                                <button class="quantity-btn minus px-3 py-1 text-gray-600 dark:text-black hover:bg-gray-100" data-product="{{ $product->id }}">-</button>
+                                <input type="number" class="quantity-input w-16 text-center border-0 focus:ring-0 dark:text-black" value="1" min="1" max="{{ $product->stock }}" data-product="{{ $product->id }}">
+                                <button class="quantity-btn plus px-3 py-1 text-gray-600 dark:text-black hover:bg-gray-100" data-product="{{ $product->id }}">+</button>
                             </div>
                             <button class="add-to-cart flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors" data-product="{{ $product->id }}">
                                 Adicionar
@@ -161,7 +245,7 @@
     <!-- Modal de Login/Registro -->
     <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-lg max-w-md w-full p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold">Faça login para continuar</h3>
                     <button id="close-auth-modal" class="text-gray-400 hover:text-gray-600">
@@ -170,7 +254,7 @@
                         </svg>
                     </button>
                 </div>
-                <p class="text-gray-600 mb-6">Você precisa ter uma conta para adicionar produtos ao carrinho.</p>
+                <p class="text-gray-600 dark:text-gray-300 mb-6">Você precisa ter uma conta para adicionar produtos ao carrinho.</p>
                 <div class="space-y-3">
                     <a href="{{ route('client.login') }}?return={{ urlencode(request()->fullUrl()) }}"
                         class="block w-full bg-blue-500 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
@@ -221,7 +305,7 @@
     </div>
 
     <!-- Rodapé -->
-    <footer class="bg-gray-800 text-white mt-16">
+    <footer class="bg-gray-800 text-white mt-16 dark:bg-slate-950 ">
         <div class="container mx-auto px-4 py-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- Informações da Loja -->
@@ -236,7 +320,7 @@
                 </div>
 
                 <!-- Links Rápidos -->
-                <div>
+                <div id="sobre">
                     <h3 class="text-lg font-semibold mb-4">Links Rápidos</h3>
                     <ul class="space-y-2 text-gray-300">
                         <li><a href="#" class="hover:text-white">Sobre Nós</a></li>
@@ -278,9 +362,58 @@
     </footer>
 
     <script>
+
+        function updateThemeIcon(isDark) {
+    const icon = document.getElementById('theme-icon');
+    if (!icon) return;
+
+    icon.textContent = isDark ? '☀️' : '🌙';
+  }
+
+  
+
+        function toggleTheme() {
+            const html = document.documentElement
+
+            if (html.classList.contains("dark")) {
+                html.classList.remove("dark")
+                localStorage.setItem("theme", "light")
+            } else {
+                html.classList.add("dark")
+                localStorage.setItem("theme", "dark")
+            }
+        }
+
+        (function() {
+            const STORAGE_KEY = 'theme'
+            const root = document.documentElement
+
+            // aplica tema inicial
+            const savedTheme = localStorage.getItem(STORAGE_KEY)
+
+            if (
+                savedTheme === 'dark' ||
+                (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
+            ) {
+                root.classList.add('dark')
+            } else {
+                root.classList.remove('dark')
+            }
+
+            // função global
+            window.toggleTheme = function() {
+            const isDark = root.classList.toggle('dark');
+            localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+        }
+        })();
+    </script>
+
+
+    <script>
         // Variáveis globais
         let currentClient = null;
-        const storeId = @json($store->id);
+        const storeId = @json($store-> id);
         console.log(storeId, 'storeId');
         document.addEventListener('DOMContentLoaded', function() {
             // Verificar autenticação do cliente

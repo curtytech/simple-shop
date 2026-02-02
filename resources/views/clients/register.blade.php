@@ -1,184 +1,136 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Cadastro - Cliente</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
-    <div class="min-h-screen py-6 flex flex-col justify-center sm:py-12">
-        <div class="relative py-3 sm:max-w-xl sm:mx-auto">
-            <div class="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
-                <div class="max-w-md mx-auto">
-                    <h2 class="text-2xl font-bold text-center text-gray-900 mb-6">Criar Conta</h2>
-                    
-                    <form id="registerForm" class="space-y-4">
-                        <input type="hidden" name="user_id" id="user_id" value="{{ request('store_id', 2) }}">
-                        
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700">Nome Completo</label>
-                            <input type="text" id="name" name="name" required
-                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
 
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-gray-700">E-mail</label>
-                            <input type="email" id="email" name="email" required
-                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-
-                        <div>
-                            <label for="celphone" class="block text-sm font-medium text-gray-700">Telefone</label>
-                            <input type="text" id="celphone" name="celphone" required
-                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-
-                        <div>
-                            <label for="password" class="block text-sm font-medium text-gray-700">Senha</label>
-                            <input type="password" id="password" name="password" required minlength="8"
-                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-
-                        <div>
-                            <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirmar Senha</label>
-                            <input type="password" id="password_confirmation" name="password_confirmation" required
-                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-
-                        <div>
-                            <label for="address" class="block text-sm font-medium text-gray-700">Endereço</label>
-                            <input type="text" id="address" name="address" required
-                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label for="number" class="block text-sm font-medium text-gray-700">Número</label>
-                                <input type="text" id="number" name="number" required
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label for="zipcode" class="block text-sm font-medium text-gray-700">CEP</label>
-                                <input type="text" id="zipcode" name="zipcode" required
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label for="city" class="block text-sm font-medium text-gray-700">Cidade</label>
-                            <input type="text" id="city" name="city" required
-                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label for="state" class="block text-sm font-medium text-gray-700">Estado</label>
-                                <input type="text" id="state" name="state" required
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label for="country" class="block text-sm font-medium text-gray-700">País</label>
-                                <input type="text" id="country" name="country" value="Brasil" required
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label for="reference_point" class="block text-sm font-medium text-gray-700">Ponto de Referência (opcional)</label>
-                            <input type="text" id="reference_point" name="reference_point"
-                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-
-                        <button type="submit"
-                                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            Criar Conta
-                        </button>
-                    </form>
-
-                    <div class="mt-6 text-center">
-                        <p class="text-sm text-gray-600">
-                            Já tem uma conta?
-                            <a href="{{ route('client.login') }}" class="font-medium text-blue-600 hover:text-blue-500">
-                                Faça login
-                            </a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- 🌓 aplica o tema antes do Tailwind -->
+    <script>
+        (function () {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Verificar se o store_id foi passado via URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const storeId = urlParams.get('store_id');
-            
-            if (storeId) {
-                document.getElementById('user_id').value = storeId;
-                console.log('Store ID definido via URL:', storeId);
-            } else {
-                // Se não tiver store_id na URL, usar o valor padrão (ID 2 da TechStore Brasil)
-                const defaultStoreId = document.getElementById('user_id').value;
-                console.log('Usando Store ID padrão:', defaultStoreId);
-            }
-
-            document.getElementById('registerForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                // Verificar se o user_id foi definido
-                const userId = document.getElementById('user_id').value;
-                console.log('User ID no envio:', userId);
-                
-                if (!userId || userId === 'null' || userId === '') {
-                    alert('Erro: ID da loja não encontrado. Tente acessar o cadastro através da página da loja.');
-                    return;
-                }
-                
-                const formData = new FormData(this);
-                
-                // Debug: mostrar todos os dados do formulário
-                console.log('Dados do formulário:');
-                for (let [key, value] of formData.entries()) {
-                    console.log(key, value);
-                }
-                
-                try {
-                    const response = await fetch('{{ route("client.register.post") }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json',
-                        },
-                        body: formData
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        alert(data.message);
-                        // Redirecionar para a página anterior ou home
-                        const returnUrl = urlParams.get('return') || '/';
-                        window.location.href = returnUrl;
-                    } else {
-                        if (data.errors) {
-                            let errorMessage = 'Erros encontrados:\n';
-                            for (const field in data.errors) {
-                                errorMessage += `${field}: ${data.errors[field].join(', ')}\n`;
-                            }
-                            alert(errorMessage);
-                        } else {
-                            alert(data.message);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Erro:', error);
-                    alert('Erro ao criar conta. Tente novamente.');
-                }
-            });
-        });
+        tailwind.config = { darkMode: 'class' }
     </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{{ asset('js/theme.js') }}"></script>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+
+<div class="min-h-screen py-6 flex justify-center items-center">
+    <div class="w-full max-w-xl bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-10">
+
+        <h2 class="text-2xl font-bold text-center mb-6">
+            Criar Conta
+        </h2>
+
+        <form id="registerForm" class="space-y-4">
+            <input type="hidden" name="user_id" id="user_id" value="{{ request('store_id', 2) }}">
+
+            @foreach ([
+                ['name','Nome Completo','text'],
+                ['email','E-mail','email'],
+                ['celphone','Telefone','text'],
+            ] as [$field,$label,$type])
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {{ $label }}
+                    </label>
+                    <input
+                        type="{{ $type }}"
+                        name="{{ $field }}"
+                        required
+                        class="mt-1 w-full px-3 py-2 rounded-md
+                               border border-gray-300 dark:border-gray-600
+                               bg-white dark:bg-gray-700
+                               focus:ring-blue-500 focus:border-blue-500"
+                    >
+                </div>
+            @endforeach
+
+            <div>
+                <label class="block text-sm font-medium">Senha</label>
+                <input type="password" name="password" required minlength="8"
+                       class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium">Confirmar Senha</label>
+                <input type="password" name="password_confirmation" required
+                       class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+            </div>
+
+            <input type="text" name="address" placeholder="Endereço" required
+                   class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" name="number" placeholder="Número" required
+                       class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+                <input type="text" name="zipcode" placeholder="CEP" required
+                       class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+            </div>
+
+            <input type="text" name="city" placeholder="Cidade" required
+                   class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" name="state" placeholder="Estado" required
+                       class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+                <input type="text" name="country" value="Brasil" required
+                       class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+            </div>
+
+            <input type="text" name="reference_point" placeholder="Ponto de referência (opcional)"
+                   class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+
+            <button class="w-full py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">
+                Criar Conta
+            </button>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+            Já tem uma conta?
+            <a href="{{ route('client.login') }}" class="text-blue-600 hover:text-blue-500">
+                Faça login
+            </a>
+        </p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const storeId = urlParams.get('store_id');
+    if (storeId) document.getElementById('user_id').value = storeId;
+
+    document.getElementById('registerForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+
+        const response = await fetch('{{ route("client.register.post") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+        alert(data.message || 'Erro');
+        if (data.success) location.href = '/';
+    });
+});
+</script>
+
 </body>
 </html>
