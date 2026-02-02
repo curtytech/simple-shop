@@ -7,7 +7,7 @@
   <title>Shop You - Sua loja online</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   
   <script>
     tailwind = {
@@ -37,9 +37,10 @@
           <a href="#categorias" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Categorias</a>
           <a href="#sobre" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Sobre</a>
 
-          <button onclick="toggleTheme()" class="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-lg">
-            <span id="theme-icon">🌙</span>
+          <button onclick="toggleTheme()" class="p-2 rounded-lg text-lg flex items-center justify-center">
+            <i id="theme-icon" class="fa-solid fa-moon"></i>
           </button>
+
         </nav>
 
       </div>
@@ -391,10 +392,14 @@
   const themeIcon = document.getElementById('theme-icon')
 
   function updateThemeIcon() {
+    if (!themeIcon) return
+
+    themeIcon.classList.remove('fa-sun', 'fa-moon')
+
     if (document.documentElement.classList.contains('dark')) {
-      themeIcon.textContent = '☀️' 
+      themeIcon.classList.add('fa-sun')
     } else {
-      themeIcon.textContent = '🌙' 
+      themeIcon.classList.add('fa-moon')
     }
   }
 
@@ -404,27 +409,23 @@
 
     const savedTheme = localStorage.getItem(STORAGE_KEY)
 
-    if (
+    const isDark =
       savedTheme === 'dark' ||
       (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    ) {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
-    }
 
+    root.classList.toggle('dark', isDark)
 
     updateThemeIcon()
 
     window.toggleTheme = function() {
-      const isDark = root.classList.toggle('dark')
-      localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light')
-
+      const isDarkNow = root.classList.toggle('dark')
+      localStorage.setItem(STORAGE_KEY, isDarkNow ? 'dark' : 'light')
 
       updateThemeIcon()
     }
   })()
 </script>
+
 
 
 </body>

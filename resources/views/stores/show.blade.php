@@ -28,7 +28,6 @@
     <header class="bg-white shadow-sm border-b border-gray-200 dark:border-slate-950 dark:bg-slate-900">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-
                 <!-- LOGO -->
                 <div class="flex items-center">
                     <a href="{{config('app.url')}}" class="flex items-center">
@@ -60,8 +59,9 @@
 
                     <!-- Perfil -->
                     @if(auth()->guard('client')->check())
+                    <span id="client-name" class="hidden"></span>    
                     <a href="{{ route('store.client.config', $store->slug) }}" class=" mb-1  p-2 text-lg text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                        <i class="fa-regular fa-user"></i>
+                          <i class="fa-regular fa-user"></i>
                     </a>
                     @endif
 
@@ -84,72 +84,95 @@
                     <span class="h-6 w-px bg-gray-200 dark:bg-gray-700"></span>
 
                     <!-- Toggle Theme -->
-                    <button
-                        onclick="toggleTheme()"
-                        class="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-lg">
-                        <span id="theme-icon">🌙</span>
+                    <button onclick="toggleTheme()" class="p-2">
+                        <i id="theme-icon" class="fa-solid fa-moon"></i>
                     </button>
 
-                    @if(auth()->guard('client')->check())
-                    <button id="logout-btn" class="text-red-500 hover:text-red-700">Sair</button>
-                    @else
-                    <a href="{{ route('client.login') }}" class="text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Entrar</a>
-                    @endif
-                </div>
+                   <button
+                        id="login-btn"
+                        class="text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                        Entrar
+                    </button>
 
+                <button
+                    id="logout-btn"
+                    class="hidden text-red-500 hover:text-red-700">
+                    Sair
+                </button>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Header com Banner -->
-    <div class="relative h-64 bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
+        <!-- Header com Banner -->
+    <div class="relative h-72 bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
+
         @if($store->banner)
-        <img src="{{ Storage::url($store->banner)  }}" alt="Banner {{ $store->name }}" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+            <img 
+                src="{{ Storage::url($store->banner) }}" 
+                alt="Banner {{ $store->name }}" 
+                class="absolute inset-0 w-full h-full object-cover"
+            >
         @endif
 
-        <!-- Logo e Informações -->
-        <div class="absolute bottom-0 left-0 right-0 p-6">
-            <div class="container mx-auto flex items-end space-x-4">
-                <!-- Logo -->
-                <div class="w-24 h-24 bg-white rounded-full p-2 shadow-lg">
+        <!-- Overlay -->
+        <div class="absolute inset-0 bg-black bg-opacity-40"></div>
 
-                    @if($store->logo)
-                    <img src="{{ Storage::url($store->logo) }}" alt="Logo {{ $store->name }}" class="w-full h-full object-cover rounded-full">
-                    @else
-                    <div class="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
-                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
+        <!-- Conteúdo -->
+        <div class="relative z-10 h-full flex items-end">
+            <div class="container mx-auto px-6 pb-6 flex items-end">
+
+                <!-- Bloco central (logo + infos) -->
+                <div class="flex-1 flex flex-col items-center text-center text-white">
+
+                    <!-- Logo -->
+                    <div class="w-28 h-28 bg-white rounded-full p-2 shadow-lg animate-bounce">
+                        @if($store->logo)
+                            <img 
+                                src="{{ Storage::url($store->logo) }}" 
+                                alt="Logo {{ $store->name }}" 
+                                class="w-full h-full object-cover rounded-full"
+                            >
+                        @else
+                            <div class="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                        @endif
                     </div>
-                    @endif
-                </div>
 
-                <!-- Informações da Loja -->
-                <div class="text-white">
-                    <h1 class="text-3xl font-bold">{{ $store->name }}</h1>
+                    <!-- Nome -->
+                    <h1 class="mt-4 text-3xl font-bold">
+                        {{ $store->name }}
+                    </h1>
+
+                    <!-- Slogan -->
                     @if($store->slogan)
-                    <p class="text-lg opacity-90">{{ $store->slogan }}</p>
+                        <p class="text-lg opacity-90">
+                            {{ $store->slogan }}
+                        </p>
                     @endif
+
+                    <!-- Telefone (Font Awesome) -->
                     @if($store->celphone)
-                    <p class="text-sm opacity-75">📞 {{ $store->celphone }}</p>
+                        <p class="mt-1 text-sm opacity-80 flex items-center gap-2 justify-center">
+                            <i class="fa-solid fa-phone"></i>
+                            {{ $store->celphone }}
+                        </p>
                     @endif
                 </div>
 
-                <!-- Área de Login/Carrinho -->
-                <div class="ml-auto flex items-center space-x-4">
-                    <!-- Status do Cliente -->
-                    <div id="client-status" class="text-white text-sm">
+                <!-- Área de Login / Cliente -->
+                <div class="ml-auto flex items-center space-x-4 text-white">
+
+                    <div id="client-status" class="text-sm">
                         <span id="client-name" class="hidden"></span>
-                        <button id="logout-btn" class="hidden text-red-300 hover:text-red-100 ml-2">Sair</button>
+                        <button id="logout-btn" class="hidden text-red-300 hover:text-red-100 ml-2">
+                            Sair
+                        </button>
                     </div>
-
-                    <!-- Botão de Login -->
-                    <button id="login-btn" class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-600 transition-colors">
-                        Entrar
-                    </button>
-
-                    <!-- Carrinho -->
 
                 </div>
             </div>
@@ -158,21 +181,32 @@
 
     <!-- Informações da Loja -->
     <div class="container mx-auto px-4 mt-20">
+
         <!-- Filtros de Categoria -->
         @if($store->categories->count() > 0)
-        <div class="mb-8">
-            <h2 id="categories-title" class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Categorias</h2>
-            <div class="flex flex-wrap gap-2 mb-6">
-                <button class="category-filter active px-4 py-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors" data-category="all">
-                    Todas
-                </button>
-                @foreach($store->categories as $category)
-                <button class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors" data-category="{{ $category->id }}">
-                    {{ $category->name }}
-                </button>
-                @endforeach
+            <div class="mb-8">
+                <h2 
+                    id="categories-title" 
+                    class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                    Categorias
+                </h2>
+
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button 
+                        class="category-filter active px-4 py-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                        data-category="all">
+                        Todas
+                    </button>
+
+                    @foreach($store->categories as $category)
+                        <button
+                            class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors"
+                            data-category="{{ $category->id }}">
+                            {{ $category->name }}
+                        </button>
+                    @endforeach
+                </div>
             </div>
-        </div>
         @endif
 
         <!-- Produtos -->
@@ -269,9 +303,9 @@
     <!-- Modal do Carrinho -->
     <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
-                <div class="flex justify-between items-center p-6 border-b">
-                    <h3 class="text-lg font-semibold">Meu Carrinho</h3>
+            <div class="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden dark:bg-gray-900">
+                <div class="flex justify-between items-center p-6 border-b border-gray-400">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Meu Carrinho</h3>
                     <button id="close-cart-modal" class="text-gray-400 hover:text-gray-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -283,7 +317,7 @@
                     <!-- Conteúdo do carrinho será carregado aqui -->
                 </div>
 
-                <div class="border-t p-6">
+                <div class="border-t border-gray-400 p-6">
                     <div class="flex justify-between items-center mb-4">
                         <span class="text-lg font-semibold">Total:</span>
                         <span id="cart-total" class="text-2xl font-bold text-green-600">R$ 0,00</span>
@@ -363,7 +397,14 @@
             const icon = document.getElementById('theme-icon');
             if (!icon) return;
 
-            icon.textContent = isDark ? '☀️' : '🌙';
+            icon.classList.remove('fa-sun', 'fa-moon');
+
+            if(isDark) {
+                icon.classList.add('fa-sun');
+            }
+            else {
+                icon.classList.add('fa-moon');
+            }
         }
 
 
