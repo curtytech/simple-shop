@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script>
         tailwind = {
@@ -21,88 +22,84 @@
     </script>
 
 </head>
+
 <body class="bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100">
-     <!-- HEADER -->
-  <header class="bg-white shadow-sm border-b border-gray-200 dark:border-slate-950 dark:bg-slate-900">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between items-center h-16">
+    <!-- HEADER -->
+    <header class="bg-white shadow-sm border-b border-gray-200 dark:border-slate-950 dark:bg-slate-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
 
-      <!-- LOGO -->
-      <div class="flex items-center">
-        <img src="/favicon.ico" class="h-9 w-9 mr-2" alt="">
-        <h1 class="text-2xl font-bold bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 bg-clip-text text-transparent">
-          ShopYou
-        </h1>
-      </div>
+                <!-- LOGO -->
+                <div class="flex items-center">
+                    <a href="{{config('app.url')}}" class="flex items-center">
+                        <img src="/favicon.ico" class="h-9 w-9 mr-2" alt="">
+                        <h1 class="text-2xl font-bold bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 bg-clip-text text-transparent">
+                            ShopYou
+                        </h1>
+                    </a>
+                </div>
 
-      <!-- NAV PRINCIPAL (HOME / PRODUTOS) -->
-      <nav class="hidden md:flex items-center gap-8">
+                <!-- NAV PRINCIPAL (HOME / PRODUTOS) -->
+                <nav class="hidden md:flex items-center gap-8">
 
-        <a href="#categories-title" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-          Categorias
-        </a>
+                    <a href="#categories-title" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                        Categorias
+                    </a>
 
-        <a href="#products-title" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-          Produtos
-        </a>
+                    <a href="#products-title" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                        Produtos
+                    </a>
 
-        <a href="#sobre" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-          Sobre
-        </a>
-      </nav>
+                    <a href="#sobre" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                        Sobre
+                    </a>
+                </nav>
 
-      <!-- NAV DE AÇÕES -->
-      <div class="hidden md:flex items-center gap-4">
+                <!-- NAV DE AÇÕES -->
+                <div class="hidden md:flex items-center gap-4">
 
-      <!-- Perfil -->
-        <button class=" mb-1  p-2 text-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-          👤
-        </button>
+                    <!-- Perfil -->
+                    @if(auth()->guard('client')->check())
+                    <a href="{{ route('store.client.config', $store->slug) }}" class=" mb-1  p-2 text-lg text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                        <i class="fa-regular fa-user"></i>
+                    </a>
+                    @endif
 
-       <!-- Carrinho (usa a lógica existente) -->
-        <button
-        id="cart-btn"
-        class="relative p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
-        >
+                    <!-- Carrinho (usa a lógica existente) -->
+                    <button
+                        id="cart-btn"
+                        class="relative p-2 text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition">
 
-        <!-- Ícone -->
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M3 3h2l.4 2M7 13h10l4-8H5.4
-                m0 0L7 13m0 0l-1.5 6
-                M7 13l-1.5 6m0 0h9
-                M17 13v6a2 2 0 01-2 2
-                H9a2 2 0 01-2-2v-6"
-            />
-        </svg>
+                        <!-- Ícone -->
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <!-- Badge (continua funcionando) -->
+                        <span
+                            id="cart-count"
+                            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full hidden">
+                            0
+                        </span>
+                    </button>
 
-        <!-- Badge (continua funcionando) -->
-        <span
-            id="cart-count"
-            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full hidden"
-        >
-            0
-        </span>
-        </button>
+                    <!-- Divider -->
+                    <span class="h-6 w-px bg-gray-200 dark:bg-gray-700"></span>
 
-        <!-- Divider -->
-        <span class="h-6 w-px bg-gray-200 dark:bg-gray-700"></span>
+                    <!-- Toggle Theme -->
+                    <button
+                        onclick="toggleTheme()"
+                        class="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-lg">
+                        <span id="theme-icon">🌙</span>
+                    </button>
 
-        <!-- Toggle Theme -->
-        <button
-          onclick="toggleTheme()"
-          class="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-lg"
-        >
-          <span id="theme-icon">🌙</span>
-        </button>
-      </div>
+                    @if(auth()->guard('client')->check())
+                    <button id="logout-btn" class="text-red-500 hover:text-red-700">Sair</button>
+                    @else
+                    <a href="{{ route('client.login') }}" class="text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Entrar</a>
+                    @endif
+                </div>
 
-    </div>
-  </div>
-</header>
+            </div>
+        </div>
+    </header>
 
     <!-- Header com Banner -->
     <div class="relative h-64 bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
@@ -153,7 +150,7 @@
                     </button>
 
                     <!-- Carrinho -->
-                   
+
                 </div>
             </div>
         </div>
@@ -362,15 +359,14 @@
     </footer>
 
     <script>
-
         function updateThemeIcon(isDark) {
-    const icon = document.getElementById('theme-icon');
-    if (!icon) return;
+            const icon = document.getElementById('theme-icon');
+            if (!icon) return;
 
-    icon.textContent = isDark ? '☀️' : '🌙';
-  }
+            icon.textContent = isDark ? '☀️' : '🌙';
+        }
 
-  
+
 
         function toggleTheme() {
             const html = document.documentElement
@@ -402,19 +398,18 @@
 
             // função global
             window.toggleTheme = function() {
-            const isDark = root.classList.toggle('dark');
-            localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light');
-            updateThemeIcon(isDark);
-        }
+                const isDark = root.classList.toggle('dark');
+                localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light');
+                updateThemeIcon(isDark);
+            }
         })();
     </script>
-
 
     <script>
         // Variáveis globais
         let currentClient = null;
-        const storeId = @json($store-> id);
-        console.log(storeId, 'storeId');
+        const storeId = <?= $store->id; ?>;
+
         document.addEventListener('DOMContentLoaded', function() {
             // Verificar autenticação do cliente
             checkClientAuth();

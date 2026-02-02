@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $store->name }} - Produtos</title>
+    <title>{{ $store->name }} - Meus Pedidos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
@@ -26,7 +26,7 @@
             <div class="container mx-auto flex items-end space-x-4">
                 <!-- Logo -->
                 <div class="w-24 h-24 bg-white rounded-full p-2 shadow-lg">
-                    
+
                     @if($store->logo)
                     <img src="{{ Storage::url($store->logo) }}" alt="Logo {{ $store->name }}" class="w-full h-full object-cover rounded-full">
                     @else
@@ -75,87 +75,86 @@
         </div>
     </div>
 
-    <!-- Informações da Loja -->
-    <div class="container mx-auto px-4 mt-20">
-        <!-- Filtros de Categoria -->
-        @if($store->categories->count() > 0)
-        <div class="mb-8">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Categorias</h2>
-            <div class="flex flex-wrap gap-2 mb-6">
-                <button class="category-filter active px-4 py-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors" data-category="all">
-                    Todas
-                </button>
-                @foreach($store->categories as $category)
-                <button class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors" data-category="{{ $category->id }}">
-                    {{ $category->name }}
-                </button>
-                @endforeach
+    <!-- Meus Pedidos -->
+    <div class="container mx-auto px-4 mt-8 mb-12">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8">Meus Pedidos</h2>
+
+        @if(!auth()->guard('client')->check())
+            <div class="text-center py-12 bg-white rounded-lg shadow-md">
+                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                <h3 class="text-xl font-medium text-gray-900 mb-2">Faça login para ver seus pedidos</h3>
+                <p class="text-gray-500 mb-6">Acesse sua conta para acompanhar suas compras.</p>
+                <a href="{{ route('client.login') }}?return={{ urlencode(request()->fullUrl()) }}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                    Fazer Login
+                </a>
             </div>
-        </div>
-        @endif
-
-        <!-- Produtos -->
-        @if($store->products->count() > 0)
-        <div class="mb-8">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Produtos</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="products-grid">
-                @foreach($store->products as $product)
-                <div class="product-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow" data-category="{{ $product->category_id }}">
-                    <!-- Imagem do Produto -->
-                    <div class="w-full h-48 bg-gray-200">
-                        @if($product->images && count($product->images) > 0)
-                        <img src="{{ $product->images[0] }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
-                        @else
-                        <div class="w-full h-full flex items-center justify-center">
-                            <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                            </svg>
-                        </div>
-                        @endif
-                    </div>
-
-                    <!-- Informações do Produto -->
-                    <div class="p-4">
-                        <h3 class="font-semibold text-lg text-gray-800 mb-2">{{ $product->name }}</h3>
-                        @if($product->description)
-                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ $product->description }}</p>
-                        @endif
-
-                        <!-- Preço -->
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-2xl font-bold text-green-600">R$ {{ number_format($product->price, 2, ',', '.') }}</span>
-                            @if($product->stock > 0)
-                            <span class="text-sm text-gray-500">{{ $product->stock }} em estoque</span>
-                            @else
-                            <span class="text-sm text-red-500">Sem estoque</span>
-                            @endif
-                        </div>
-
-                        <!-- Controles de Quantidade e Adicionar ao Carrinho -->
-                        @if($product->stock > 0)
-                        <div class="flex items-center space-x-2">
-                            <div class="flex items-center border rounded-lg">
-                                <button class="quantity-btn minus px-3 py-1 text-gray-600 hover:bg-gray-100" data-product="{{ $product->id }}">-</button>
-                                <input type="number" class="quantity-input w-16 text-center border-0 focus:ring-0" value="1" min="1" max="{{ $product->stock }}" data-product="{{ $product->id }}">
-                                <button class="quantity-btn plus px-3 py-1 text-gray-600 hover:bg-gray-100" data-product="{{ $product->id }}">+</button>
+        @elseif($purchases->isEmpty())
+            <div class="text-center py-12 bg-white rounded-lg shadow-md">
+                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                </svg>
+                <h3 class="text-xl font-medium text-gray-900 mb-2">Nenhuma compra encontrada</h3>
+                <p class="text-gray-500 mb-6">Você ainda não realizou nenhuma compra nesta loja.</p>
+                <a href="{{ route('store.show', $store->slug) }}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                    Começar a Comprar
+                </a>
+            </div>
+        @else
+            <div class="space-y-6">
+                @foreach($purchases as $purchase)
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100">
+                        <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex flex-wrap justify-between items-center">
+                            <div>
+                                <span class="text-sm text-gray-500">Pedido realizado em</span>
+                                <p class="font-medium text-gray-900">{{ $purchase->created_at->format('d/m/Y \à\s H:i') }}</p>
                             </div>
-                            <button class="add-to-cart flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors" data-product="{{ $product->id }}">
-                                Adicionar
-                            </button>
+                            <div>
+                                <span class="text-sm text-gray-500">Total</span>
+                                <p class="font-medium text-gray-900">R$ {{ number_format($purchase->total, 2, ',', '.') }}</p>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-500">Status</span>
+                                <div class="mt-1">
+                                    @if($purchase->status == 'approved' || $purchase->mercadopago_status == 'approved')
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Aprovado</span>
+                                    @elseif($purchase->status == 'pending' || $purchase->mercadopago_status == 'pending')
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendente</span>
+                                    @elseif($purchase->status == 'rejected' || $purchase->mercadopago_status == 'rejected')
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Recusado</span>
+                                    @else
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ ucfirst($purchase->status ?? 'Desconhecido') }}</span>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
-                        @else
-                        <button class="w-full bg-gray-300 text-gray-500 px-4 py-2 rounded-lg cursor-not-allowed" disabled>
-                            Indisponível
-                        </button>
-                        @endif
+                        <div class="divide-y divide-gray-100">
+                            @foreach($purchase->items as $item)
+                                <div class="p-6 flex items-center">
+                                    <div class="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                                        @if($item->product && $item->product->images && count($item->product->images) > 0)
+                                            <img src="{{ $item->product->images[0] }}" alt="{{ $item->product->name }}" class="h-full w-full object-cover object-center">
+                                        @else
+                                            <div class="h-full w-full bg-gray-100 flex items-center justify-center text-gray-400">
+                                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="ml-6 flex-1">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-base font-medium text-gray-900">{{ $item->product->name ?? 'Produto Indisponível' }}</h4>
+                                            <p class="text-sm font-medium text-gray-900">R$ {{ number_format($item->price, 2, ',', '.') }}</p>
+                                        </div>
+                                        <p class="mt-1 text-sm text-gray-500">Qtd: {{ $item->quantity }}</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
                 @endforeach
             </div>
-            @else
-            <p class="text-gray-500 text-center py-8">Nenhum produto disponível no momento.</p>
-            @endif
-        </div>
+        @endif
     </div>
 
     <!-- Modal de Login/Registro -->
@@ -280,8 +279,8 @@
     <script>
         // Variáveis globais
         let currentClient = null;
-        const storeId = @json($store->id);
-        console.log(storeId, 'storeId');
+        const storeId = <?= $store->id; ?>;
+
         document.addEventListener('DOMContentLoaded', function() {
             // Verificar autenticação do cliente
             checkClientAuth();

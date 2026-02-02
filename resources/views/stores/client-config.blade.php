@@ -270,8 +270,8 @@
 <script>
     // Variáveis globais
     let currentClient = null;
-    const storeId = @json($store - > id);
-    console.log(storeId, 'storeId');
+    const storeId = <?= $store->id; ?>;
+
     document.addEventListener('DOMContentLoaded', function() {
         // Verificar autenticação do cliente
         checkClientAuth();
