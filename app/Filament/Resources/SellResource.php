@@ -33,8 +33,13 @@ class SellResource extends Resource
                     ->label('Total')
                     ->prefix('R$')
                     ->disabled(),
-                Forms\Components\TextInput::make('status')
+                Forms\Components\Select::make('status')
                     ->label('Status')
+                    ->select([
+                        'approved' => 'Aprovada',
+                        'pending' => 'Pendente',
+                        'failure' => 'Cancelada',
+                    ])
                     ->disabled(),
                 Forms\Components\DateTimePicker::make('created_at')
                     ->label('Data da Venda')

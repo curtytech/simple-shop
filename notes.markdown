@@ -11,7 +11,9 @@
 Ideias Dashboard 
 Lista de Imoveis mais vistos
 
-
+# Configurar Timezone
+config/app.php
+'timezone' => 'America/Sao_Paulo',
 
 # Comands
 

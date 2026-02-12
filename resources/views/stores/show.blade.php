@@ -68,8 +68,8 @@
                     <!-- Carrinho (usa a lógica existente) -->
                     <button
                         id="cart-btn"
-                        class="relative p-2 text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition">
-
+                        class="relative p-2 text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
+                        title="Carrinho">
                         <!-- Ícone -->
                         <i class="fa-solid fa-cart-shopping"></i>
                         <!-- Badge (continua funcionando) -->
@@ -79,6 +79,14 @@
                             0
                         </span>
                     </button>
+
+                    <a
+                        id="cart-btn"
+                        class="relative p-2 text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
+                        title="Minhas Compras"
+                        href="{{ route('store.client.products', $store->slug) }}">                        
+                        <i class="fa-solid fa-bag-shopping"></i>                      
+                    </a>
 
                     <!-- Divider -->
                     <span class="h-6 w-px bg-gray-200 dark:bg-gray-700"></span>

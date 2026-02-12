@@ -4,16 +4,17 @@ namespace App\Filament\Resources\SellResource\Pages;
 
 use App\Filament\Resources\SellResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
+use Filament\Resources\Pages\EditRecord;
 
-class ListSells extends ListRecords
+class EditSell extends EditRecord
 {
     protected static string $resource = SellResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\ViewAction::make(),
+            Actions\DeleteAction::make(),
         ];
     }
 }
