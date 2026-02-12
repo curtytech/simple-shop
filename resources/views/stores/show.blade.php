@@ -93,7 +93,7 @@
 
                     <!-- Toggle Theme -->
                     <button onclick="toggleTheme()" class="p-2">
-                        <i id="theme-icon" class="fa-solid fa-moon"></i>
+                        <i id="theme-icon" class="fa-solid fa-moon " title= "Alterar Tema"></i>
                     </button>
 
                    <button

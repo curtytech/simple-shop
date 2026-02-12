@@ -12,6 +12,31 @@
 </head>
 
 <body class="bg-gray-50">
+      <header class="bg-white  shadow-sm border-b border-gray-200   dark:border-slate-950 dark:bg-slate-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+
+        <div class="flex items-center">
+          <img src="/favicon.ico" class="h-9 w-9 mr-2" alt="">
+          <h1 class="text-2xl font-bold bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 bg-clip-text text-transparent">
+            ShopYou
+          </h1>
+        </div>
+
+        <nav class="hidden md:flex space-x-8 items-center">
+          <a href="#lojas" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Lojas</a>
+          <a href="#categorias" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Categorias</a>
+          <a href="#sobre" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Sobre</a>
+
+          <button onclick="toggleTheme()" class="p-2 rounded-lg text-lg flex items-center justify-center">
+            <i id="theme-icon" class="fa-solid fa-moon" title= "Alterar Tema"></i>
+          </button>
+
+        </nav>
+
+      </div>
+    </div>
+  </header>
     <!-- Header com Banner -->
     <div class="relative h-48 bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
         @if($store->banner)

@@ -38,7 +38,7 @@
           <a href="#sobre" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Sobre</a>
 
           <button onclick="toggleTheme()" class="p-2 rounded-lg text-lg flex items-center justify-center">
-            <i id="theme-icon" class="fa-solid fa-moon"></i>
+            <i id="theme-icon" class="fa-solid fa-moon" title= "Alterar Tema"></i>
           </button>
 
         </nav>
