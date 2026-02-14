@@ -15,6 +15,9 @@ Lista de Imoveis mais vistos
 config/app.php
 'timezone' => 'America/Sao_Paulo',
 
+## Apagar Cache do Git na vendor
+git rm -r --cached vendor/
+
 # Comands
 
 composer require filament/filament:"^3.3" -W
