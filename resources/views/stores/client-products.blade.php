@@ -6,154 +6,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $store->name }} - Meus Pedidos</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script>
+        tailwind = {
+            config: {
+                darkMode: 'class'
+            }
+        }
+    </script>
+
 </head>
 
 <body class="bg-gray-50">
     <!-- Header com Banner -->
-    <div class="relative h-64 bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
-        @if($store->banner)
-        <img src="{{ Storage::url($store->banner)  }}" alt="Banner {{ $store->name }}" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-black bg-opacity-40"></div>
-        @endif
 
-        <!-- Logo e Informações -->
-        <div class="absolute bottom-0 left-0 right-0 p-6">
-            <div class="container mx-auto flex items-end space-x-4">
-                <!-- Logo -->
-                <div class="w-24 h-24 bg-white rounded-full p-2 shadow-lg">
-
-                    @if($store->logo)
-                    <img src="{{ Storage::url($store->logo) }}" alt="Logo {{ $store->name }}" class="w-full h-full object-cover rounded-full">
-                    @else
-                    <div class="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
-                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                    </div>
-                    @endif
-                </div>
-
-                <!-- Informações da Loja -->
-                <div class="text-white">
-                    <h1 class="text-3xl font-bold">{{ $store->name }}</h1>
-                    @if($store->slogan)
-                    <p class="text-lg opacity-90">{{ $store->slogan }}</p>
-                    @endif
-                    @if($store->celphone)
-                    <p class="text-sm opacity-75">📞 {{ $store->celphone }}</p>
-                    @endif
-                </div>
-
-                <!-- Área de Login/Carrinho -->
-                <div class="ml-auto flex items-center space-x-4">
-                    <!-- Status do Cliente -->
-                    <div id="client-status" class="text-white text-sm">
-                        <span id="client-name" class="hidden"></span>
-                        <button id="logout-btn" class="hidden text-red-300 hover:text-red-100 ml-2">Sair</button>
-                    </div>
-
-                    <!-- Botão de Login -->
-                    <button id="login-btn" class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-600 transition-colors">
-                        Entrar
-                    </button>
-
-                    <!-- Carrinho -->
-                    <button id="cart-btn" class="bg-white text-gray-800 px-4 py-2 rounded-lg shadow-lg hover:bg-gray-100 transition-colors flex items-center space-x-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"></path>
-                        </svg>
-                        <span>Carrinho</span>
-                        <span id="cart-count" class="bg-red-500 text-white text-xs px-2 py-1 rounded-full hidden">0</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('stores.client-header')
 
     <!-- Meus Pedidos -->
     <div class="container mx-auto px-4 mt-8 mb-12">
         <h2 class="text-3xl font-bold text-gray-800 mb-8">Meus Pedidos</h2>
 
         @if(!auth()->guard('client')->check())
-            <div class="text-center py-12 bg-white rounded-lg shadow-md">
-                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                </svg>
-                <h3 class="text-xl font-medium text-gray-900 mb-2">Faça login para ver seus pedidos</h3>
-                <p class="text-gray-500 mb-6">Acesse sua conta para acompanhar suas compras.</p>
-                <a href="{{ route('client.login') }}?return={{ urlencode(request()->fullUrl()) }}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                    Fazer Login
-                </a>
-            </div>
+        <div class="text-center py-12 bg-white rounded-lg shadow-md">
+            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+            <h3 class="text-xl font-medium text-gray-900 mb-2">Faça login para ver seus pedidos</h3>
+            <p class="text-gray-500 mb-6">Acesse sua conta para acompanhar suas compras.</p>
+            <a href="{{ route('client.login') }}?return={{ urlencode(request()->fullUrl()) }}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                Fazer Login
+            </a>
+        </div>
         @elseif($purchases->isEmpty())
-            <div class="text-center py-12 bg-white rounded-lg shadow-md">
-                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                </svg>
-                <h3 class="text-xl font-medium text-gray-900 mb-2">Nenhuma compra encontrada</h3>
-                <p class="text-gray-500 mb-6">Você ainda não realizou nenhuma compra nesta loja.</p>
-                <a href="{{ route('store.show', $store->slug) }}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                    Começar a Comprar
-                </a>
-            </div>
+        <div class="text-center py-12 bg-white rounded-lg shadow-md">
+            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+            </svg>
+            <h3 class="text-xl font-medium text-gray-900 mb-2">Nenhuma compra encontrada</h3>
+            <p class="text-gray-500 mb-6">Você ainda não realizou nenhuma compra nesta loja.</p>
+            <a href="{{ route('store.show', $store->slug) }}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                Começar a Comprar
+            </a>
+        </div>
         @else
-            <div class="space-y-6">
-                @foreach($purchases as $purchase)
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100">
-                        <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex flex-wrap justify-between items-center">
-                            <div>
-                                <span class="text-sm text-gray-500">Pedido realizado em</span>
-                                <p class="font-medium text-gray-900">{{ $purchase->created_at->format('d/m/Y \à\s H:i') }}</p>
-                            </div>
-                            <div>
-                                <span class="text-sm text-gray-500">Total</span>
-                                <p class="font-medium text-gray-900">R$ {{ number_format($purchase->total, 2, ',', '.') }}</p>
-                            </div>
-                            <div>
-                                <span class="text-sm text-gray-500">Status</span>
-                                <div class="mt-1">
-                                    @if($purchase->status == 'approved' || $purchase->mercadopago_status == 'approved')
-                                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Aprovado</span>
-                                    @elseif($purchase->status == 'pending' || $purchase->mercadopago_status == 'pending')
-                                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendente</span>
-                                    @elseif($purchase->status == 'rejected' || $purchase->mercadopago_status == 'rejected')
-                                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Recusado</span>
-                                    @else
-                                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ ucfirst($purchase->status ?? 'Desconhecido') }}</span>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                        <div class="divide-y divide-gray-100">
-                            @foreach($purchase->items as $item)
-                                <div class="p-6 flex items-center">
-                                    <div class="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                                        @if($item->product && $item->product->images && count($item->product->images) > 0)
-                                            <img src="{{ $item->product->images[0] }}" alt="{{ $item->product->name }}" class="h-full w-full object-cover object-center">
-                                        @else
-                                            <div class="h-full w-full bg-gray-100 flex items-center justify-center text-gray-400">
-                                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="ml-6 flex-1">
-                                        <div class="flex items-center justify-between">
-                                            <h4 class="text-base font-medium text-gray-900">{{ $item->product->name ?? 'Produto Indisponível' }}</h4>
-                                            <p class="text-sm font-medium text-gray-900">R$ {{ number_format($item->price, 2, ',', '.') }}</p>
-                                        </div>
-                                        <p class="mt-1 text-sm text-gray-500">Qtd: {{ $item->quantity }}</p>
-                                    </div>
-                                </div>
-                            @endforeach
+        <div class="space-y-6">
+            @foreach($purchases as $purchase)
+            <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100">
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex flex-wrap justify-between items-center">
+                    <div>
+                        <span class="text-sm text-gray-500">Pedido realizado em</span>
+                        <p class="font-medium text-gray-900">{{ $purchase->created_at->format('d/m/Y \à\s H:i') }}</p>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-500">Total</span>
+                        <p class="font-medium text-gray-900">R$ {{ number_format($purchase->total, 2, ',', '.') }}</p>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-500">Status</span>
+                        <div class="mt-1">
+                            @if($purchase->status == 'approved' || $purchase->mercadopago_status == 'approved')
+                            <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Aprovado</span>
+                            @elseif($purchase->status == 'pending' || $purchase->mercadopago_status == 'pending')
+                            <span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendente</span>
+                            @elseif($purchase->status == 'rejected' || $purchase->mercadopago_status == 'rejected')
+                            <span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Recusado</span>
+                            @else
+                            <span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ ucfirst($purchase->status ?? 'Desconhecido') }}</span>
+                            @endif
                         </div>
                     </div>
-                @endforeach
+                </div>
+                <div class="divide-y divide-gray-100">
+                    @foreach($purchase->items as $item)
+                    <div class="p-6 flex items-center">
+                        <div class="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                            @if($item->product && $item->product->images && count($item->product->images) > 0)
+                            <img src="{{ $item->product->images[0] }}" alt="{{ $item->product->name }}" class="h-full w-full object-cover object-center">
+                            @else
+                            <div class="h-full w-full bg-gray-100 flex items-center justify-center text-gray-400">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            @endif
+                        </div>
+                        <div class="ml-6 flex-1">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-base font-medium text-gray-900">{{ $item->product->name ?? 'Produto Indisponível' }}</h4>
+                                <p class="text-sm font-medium text-gray-900">R$ {{ number_format($item->price, 2, ',', '.') }}</p>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-500">Qtd: {{ $item->quantity }}</p>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
             </div>
+            @endforeach
+        </div>
         @endif
     </div>
 
@@ -220,61 +175,7 @@
     </div>
 
     <!-- Rodapé -->
-    <footer class="bg-gray-800 text-white mt-16">
-        <div class="container mx-auto px-4 py-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Informações da Loja -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">{{ $store->name }}</h3>
-                    @if($store->slogan)
-                    <p class="text-gray-300 mb-2">{{ $store->slogan }}</p>
-                    @endif
-                    @if($store->celphone)
-                    <p class="text-gray-300">📞 {{ $store->celphone }}</p>
-                    @endif
-                </div>
-
-                <!-- Links Rápidos -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Links Rápidos</h3>
-                    <ul class="space-y-2 text-gray-300">
-                        <li><a href="#" class="hover:text-white">Sobre Nós</a></li>
-                        <li><a href="#" class="hover:text-white">Contato</a></li>
-                        <li><a href="#" class="hover:text-white">Política de Privacidade</a></li>
-                        <li><a href="#" class="hover:text-white">Termos de Uso</a></li>
-                    </ul>
-                </div>
-
-                <!-- Redes Sociais -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Siga-nos</h3>
-                    <div class="flex space-x-4">
-                        @if($store->facebook)
-                        <a href="{{ $store->facebook }}" target="_blank" class="text-gray-300 hover:text-white">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                            </svg>
-                        </a>
-                        @endif
-                        @if($store->instagram)
-                        <a href="{{ $store->instagram }}" target="_blank" class="text-gray-300 hover:text-white">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987 6.62 0 11.987-5.367 11.987-11.987C24.014 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.49-3.323-1.297C4.198 14.895 3.708 13.744 3.708 12.447s.49-2.448 1.297-3.323c.875-.807 2.026-1.297 3.323-1.297s2.448.49 3.323 1.297c.807.875 1.297 2.026 1.297 3.323s-.49 2.448-1.297 3.323c-.875.807-2.026 1.297-3.323 1.297z" />
-                            </svg>
-                        </a>
-                        @endif
-                        @if($store->site)
-                        <a href="{{ $store->site }}" target="_blank" class="text-gray-300 hover:text-white">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
-                            </svg>
-                        </a>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('stores.client-footer')
 
     <script>
         // Variáveis globais

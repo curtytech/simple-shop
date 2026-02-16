@@ -25,102 +25,16 @@
 
 <body class="bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100">
     <!-- HEADER -->
-    <header class="bg-white shadow-sm border-b border-gray-200 dark:border-slate-950 dark:bg-slate-900">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- LOGO -->
-                <div class="flex items-center">
-                    <a href="{{config('app.url')}}" class="flex items-center">
-                        <img src="/favicon.ico" class="h-9 w-9 mr-2" alt="">
-                        <h1 class="text-2xl font-bold bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 bg-clip-text text-transparent">
-                            ShopYou
-                        </h1>
-                    </a>
-                </div>
+    @include('stores.client-header')
 
-                <!-- NAV PRINCIPAL (HOME / PRODUTOS) -->
-                <nav class="hidden md:flex items-center gap-8">
-
-                    <a href="#categories-title" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                        Categorias
-                    </a>
-
-                    <a href="#products-title" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                        Produtos
-                    </a>
-
-                    <a href="#sobre" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                        Sobre
-                    </a>
-                </nav>
-
-                <!-- NAV DE AÇÕES -->
-                <div class="hidden md:flex items-center gap-4">
-
-                    <!-- Perfil -->
-                    @if(auth()->guard('client')->check())
-                    <span id="client-name" class="hidden"></span>    
-                    <a href="{{ route('store.client.config', $store->slug) }}" class=" mb-1  p-2 text-lg text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                          <i class="fa-regular fa-user"></i>
-                    </a>
-                    @endif
-
-                    <!-- Carrinho (usa a lógica existente) -->
-                    <button
-                        id="cart-btn"
-                        class="relative p-2 text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
-                        title="Carrinho">
-                        <!-- Ícone -->
-                        <i class="fa-solid fa-cart-shopping"></i>
-                        <!-- Badge (continua funcionando) -->
-                        <span
-                            id="cart-count"
-                            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full hidden">
-                            0
-                        </span>
-                    </button>
-
-                    <a
-                        id="cart-btn"
-                        class="relative p-2 text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
-                        title="Minhas Compras"
-                        href="{{ route('store.client.products', $store->slug) }}">                        
-                        <i class="fa-solid fa-bag-shopping"></i>                      
-                    </a>
-
-                    <!-- Divider -->
-                    <span class="h-6 w-px bg-gray-200 dark:bg-gray-700"></span>
-
-                    <!-- Toggle Theme -->
-                    <button onclick="toggleTheme()" class="p-2">
-                        <i id="theme-icon" class="fa-solid fa-moon " title= "Alterar Tema"></i>
-                    </button>
-
-                   <button
-                        id="login-btn"
-                        class="text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                        Entrar
-                    </button>
-
-                <button
-                    id="logout-btn"
-                    class="hidden text-red-500 hover:text-red-700">
-                    Sair
-                </button>
-                </div>
-            </div>
-        </div>
-    </header>
-
-        <!-- Header com Banner -->
+    <!-- Header com Banner -->
     <div class="relative h-72 bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
 
         @if($store->banner)
-            <img 
-                src="{{ Storage::url($store->banner) }}" 
-                alt="Banner {{ $store->name }}" 
-                class="absolute inset-0 w-full h-full object-cover"
-            >
+        <img
+            src="{{ Storage::url($store->banner) }}"
+            alt="Banner {{ $store->name }}"
+            class="absolute inset-0 w-full h-full object-cover">
         @endif
 
         <!-- Overlay -->
@@ -136,18 +50,17 @@
                     <!-- Logo -->
                     <div class="w-28 h-28 bg-white rounded-full p-2 shadow-lg animate-bounce">
                         @if($store->logo)
-                            <img 
-                                src="{{ Storage::url($store->logo) }}" 
-                                alt="Logo {{ $store->name }}" 
-                                class="w-full h-full object-cover rounded-full"
-                            >
+                        <img
+                            src="{{ Storage::url($store->logo) }}"
+                            alt="Logo {{ $store->name }}"
+                            class="w-full h-full object-cover rounded-full">
                         @else
-                            <div class="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
-                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                            </div>
+                        <div class="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
                         @endif
                     </div>
 
@@ -158,17 +71,17 @@
 
                     <!-- Slogan -->
                     @if($store->slogan)
-                        <p class="text-lg opacity-90">
-                            {{ $store->slogan }}
-                        </p>
+                    <p class="text-lg opacity-90">
+                        {{ $store->slogan }}
+                    </p>
                     @endif
 
                     <!-- Telefone (Font Awesome) -->
                     @if($store->celphone)
-                        <p class="mt-1 text-sm opacity-80 flex items-center gap-2 justify-center">
-                            <i class="fa-solid fa-phone"></i>
-                            {{ $store->celphone }}
-                        </p>
+                    <p class="mt-1 text-sm opacity-80 flex items-center gap-2 justify-center">
+                        <i class="fa-solid fa-phone"></i>
+                        {{ $store->celphone }}
+                    </p>
                     @endif
                 </div>
 
@@ -192,29 +105,29 @@
 
         <!-- Filtros de Categoria -->
         @if($store->categories->count() > 0)
-            <div class="mb-8">
-                <h2 
-                    id="categories-title" 
-                    class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                    Categorias
-                </h2>
+        <div class="mb-8">
+            <h2
+                id="categories-title"
+                class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                Categorias
+            </h2>
 
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <button 
-                        class="category-filter active px-4 py-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
-                        data-category="all">
-                        Todas
-                    </button>
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button
+                    class="category-filter active px-4 py-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                    data-category="all">
+                    Todas
+                </button>
 
-                    @foreach($store->categories as $category)
-                        <button
-                            class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors"
-                            data-category="{{ $category->id }}">
-                            {{ $category->name }}
-                        </button>
-                    @endforeach
-                </div>
+                @foreach($store->categories as $category)
+                <button
+                    class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors"
+                    data-category="{{ $category->id }}">
+                    {{ $category->name }}
+                </button>
+                @endforeach
             </div>
+        </div>
         @endif
 
         <!-- Produtos -->
@@ -344,61 +257,7 @@
     </div>
 
     <!-- Rodapé -->
-    <footer class="bg-gray-800 text-white mt-16 dark:bg-slate-950 ">
-        <div class="container mx-auto px-4 py-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Informações da Loja -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">{{ $store->name }}</h3>
-                    @if($store->slogan)
-                    <p class="text-gray-300 mb-2">{{ $store->slogan }}</p>
-                    @endif
-                    @if($store->celphone)
-                    <p class="text-gray-300">📞 {{ $store->celphone }}</p>
-                    @endif
-                </div>
-
-                <!-- Links Rápidos -->
-                <div id="sobre">
-                    <h3 class="text-lg font-semibold mb-4">Links Rápidos</h3>
-                    <ul class="space-y-2 text-gray-300">
-                        <li><a href="#" class="hover:text-white">Sobre Nós</a></li>
-                        <li><a href="#" class="hover:text-white">Contato</a></li>
-                        <li><a href="#" class="hover:text-white">Política de Privacidade</a></li>
-                        <li><a href="#" class="hover:text-white">Termos de Uso</a></li>
-                    </ul>
-                </div>
-
-                <!-- Redes Sociais -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Siga-nos</h3>
-                    <div class="flex space-x-4">
-                        @if($store->facebook)
-                        <a href="{{ $store->facebook }}" target="_blank" class="text-gray-300 hover:text-white">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                            </svg>
-                        </a>
-                        @endif
-                        @if($store->instagram)
-                        <a href="{{ $store->instagram }}" target="_blank" class="text-gray-300 hover:text-white">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987 6.62 0 11.987-5.367 11.987-11.987C24.014 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.49-3.323-1.297C4.198 14.895 3.708 13.744 3.708 12.447s.49-2.448 1.297-3.323c.875-.807 2.026-1.297 3.323-1.297s2.448.49 3.323 1.297c.807.875 1.297 2.026 1.297 3.323s-.49 2.448-1.297 3.323c-.875.807-2.026 1.297-3.323 1.297z" />
-                            </svg>
-                        </a>
-                        @endif
-                        @if($store->site)
-                        <a href="{{ $store->site }}" target="_blank" class="text-gray-300 hover:text-white">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
-                            </svg>
-                        </a>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('stores.client-footer')
 
     <script>
         function updateThemeIcon(isDark) {
@@ -407,10 +266,9 @@
 
             icon.classList.remove('fa-sun', 'fa-moon');
 
-            if(isDark) {
+            if (isDark) {
                 icon.classList.add('fa-sun');
-            }
-            else {
+            } else {
                 icon.classList.add('fa-moon');
             }
         }

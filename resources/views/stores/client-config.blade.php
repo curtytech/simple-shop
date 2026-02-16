@@ -5,71 +5,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $store->name }} - Minha Conta</title>
+    <title>{{ $store->name }}</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script>
+        tailwind = {
+            config: {
+                darkMode: 'class'
+            }
+        }
+    </script>
+
 </head>
 
 <body class="bg-gray-50">
-      <header class="bg-white  shadow-sm border-b border-gray-200   dark:border-slate-950 dark:bg-slate-900">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-
-        <div class="flex items-center">
-          <img src="/favicon.ico" class="h-9 w-9 mr-2" alt="">
-          <h1 class="text-2xl font-bold bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 bg-clip-text text-transparent">
-            ShopYou
-          </h1>
-        </div>
-
-        <nav class="hidden md:flex space-x-8 items-center">
-          <a href="#lojas" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Lojas</a>
-          <a href="#categorias" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Categorias</a>
-          <a href="#sobre" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Sobre</a>
-
-          <button onclick="toggleTheme()" class="p-2 rounded-lg text-lg flex items-center justify-center">
-            <i id="theme-icon" class="fa-solid fa-moon" title= "Alterar Tema"></i>
-          </button>
-
-        </nav>
-
-      </div>
-    </div>
-  </header>
-    <!-- Header com Banner -->
-    <div class="relative h-48 bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
-        @if($store->banner)
-        <img src="{{ Storage::url($store->banner)  }}" alt="Banner {{ $store->name }}" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-black bg-opacity-40"></div>
-        @endif
-
-        <div class="absolute bottom-0 left-0 right-0 p-6">
-            <div class="container mx-auto flex items-end space-x-4">
-                <div class="w-20 h-20 bg-white rounded-full p-1 shadow-lg">
-                    @if($store->logo)
-                    <img src="{{ Storage::url($store->logo) }}" alt="Logo {{ $store->name }}" class="w-full h-full object-cover rounded-full">
-                    @else
-                    <div class="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
-                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                    </div>
-                    @endif
-                </div>
-                <div class="text-white mb-2">
-                    <h1 class="text-2xl font-bold">{{ $store->name }}</h1>
-                    <p class="text-sm opacity-90">Minha Conta</p>
-                </div>
-                <div class="ml-auto mb-4">
-                    <a href="{{ route('store.show', $store->slug) }}" class="bg-white text-blue-600 px-4 py-2 rounded-lg shadow hover:bg-gray-100 transition-colors">
-                        Voltar para a Loja
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
+  
+    @include('stores.client-header')
+  
     <div class="container mx-auto px-4 py-8 max-w-4xl">
         <div class="bg-white rounded-lg shadow-md overflow-hidden p-6">
             <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">Meus Dados</h2>
@@ -153,144 +110,90 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Verificar autenticação e carregar dados
-            fetch('/client/user')
-                .then(response => {
-                    if (!response.ok) {
-                        window.location.href = "{{ route('client.login') }}?return={{ urlencode(request()->fullUrl()) }}";
-                        throw new Error('Não autenticado');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.client) {
-                        const fields = ['name', 'email', 'celphone', 'address', 'number', 'zipcode', 'city', 'state', 'country', 'reference_point'];
-                        fields.forEach(field => {
-                            if (document.getElementById(field)) {
-                                document.getElementById(field).value = data.client[field] || '';
-                            }
-                        });
-                    }
-                })
-                .catch(error => console.error('Erro ao carregar dados:', error));
-
-            // Envio do formulário
-            document.getElementById('profile-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const formData = new FormData(this);
-                const data = Object.fromEntries(formData.entries());
-
-                // Remove campos de senha se estiverem vazios
-                if (!data.password) {
-                    delete data.password;
-                    delete data.password_confirmation;
-                }
-
-                fetch('{{ route("client.update") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        },
-                        body: JSON.stringify(data)
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Sucesso!',
-                                text: 'Seus dados foram atualizados.',
-                                confirmButtonColor: '#3B82F6'
-                            });
-                        } else {
-                            let errorMsg = data.message || 'Erro ao atualizar dados.';
-                            if (data.errors) {
-                                errorMsg += '\n' + Object.values(data.errors).flat().join('\n');
-                            }
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Erro',
-                                text: errorMsg,
-                                confirmButtonColor: '#3B82F6'
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erro:', error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Erro',
-                            text: 'Ocorreu um erro ao processar sua solicitação.',
-                            confirmButtonColor: '#3B82F6'
-                        });
-                    });
-            });
-        });
-    </script>
+    <!-- Rodapé -->
+    @include('stores.client-footer')
 </body>
 
 </html>
 
-<!-- Rodapé -->
-<footer class="bg-gray-800 text-white mt-16">
-    <div class="container mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Informações da Loja -->
-            <div>
-                <h3 class="text-lg font-semibold mb-4">{{ $store->name }}</h3>
-                @if($store->slogan)
-                <p class="text-gray-300 mb-2">{{ $store->slogan }}</p>
-                @endif
-                @if($store->celphone)
-                <p class="text-gray-300">📞 {{ $store->celphone }}</p>
-                @endif
-            </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar autenticação e carregar dados
+        fetch('/client/user')
+            .then(response => {
+                if (!response.ok) {
+                    window.location.href = "{{ route('client.login') }}?return={{ urlencode(request()->fullUrl()) }}";
+                    throw new Error('Não autenticado');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.client) {
+                    const fields = ['name', 'email', 'celphone', 'address', 'number', 'zipcode', 'city', 'state', 'country', 'reference_point'];
+                    fields.forEach(field => {
+                        if (document.getElementById(field)) {
+                            document.getElementById(field).value = data.client[field] || '';
+                        }
+                    });
+                }
+            })
+            .catch(error => console.error('Erro ao carregar dados:', error));
 
-            <!-- Links Rápidos -->
-            <div>
-                <h3 class="text-lg font-semibold mb-4">Links Rápidos</h3>
-                <ul class="space-y-2 text-gray-300">
-                    <li><a href="#" class="hover:text-white">Sobre Nós</a></li>
-                    <li><a href="#" class="hover:text-white">Contato</a></li>
-                    <li><a href="#" class="hover:text-white">Política de Privacidade</a></li>
-                    <li><a href="#" class="hover:text-white">Termos de Uso</a></li>
-                </ul>
-            </div>
+        // Envio do formulário
+        document.getElementById('profile-form').addEventListener('submit', function(e) {
+            e.preventDefault();
 
-            <!-- Redes Sociais -->
-            <div>
-                <h3 class="text-lg font-semibold mb-4">Siga-nos</h3>
-                <div class="flex space-x-4">
-                    @if($store->facebook)
-                    <a href="{{ $store->facebook }}" target="_blank" class="text-gray-300 hover:text-white">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                        </svg>
-                    </a>
-                    @endif
-                    @if($store->instagram)
-                    <a href="{{ $store->instagram }}" target="_blank" class="text-gray-300 hover:text-white">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987 6.62 0 11.987-5.367 11.987-11.987C24.014 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.49-3.323-1.297C4.198 14.895 3.708 13.744 3.708 12.447s.49-2.448 1.297-3.323c.875-.807 2.026-1.297 3.323-1.297s2.448.49 3.323 1.297c.807.875 1.297 2.026 1.297 3.323s-.49 2.448-1.297 3.323c-.875.807-2.026 1.297-3.323 1.297z" />
-                        </svg>
-                    </a>
-                    @endif
-                    @if($store->site)
-                    <a href="{{ $store->site }}" target="_blank" class="text-gray-300 hover:text-white">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
-                        </svg>
-                    </a>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-</footer>
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+
+            // Remove campos de senha se estiverem vazios
+            if (!data.password) {
+                delete data.password;
+                delete data.password_confirmation;
+            }
+
+            fetch('{{ route("client.update") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Sucesso!',
+                            text: 'Seus dados foram atualizados.',
+                            confirmButtonColor: '#3B82F6'
+                        });
+                    } else {
+                        let errorMsg = data.message || 'Erro ao atualizar dados.';
+                        if (data.errors) {
+                            errorMsg += '\n' + Object.values(data.errors).flat().join('\n');
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro',
+                            text: errorMsg,
+                            confirmButtonColor: '#3B82F6'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: 'Ocorreu um erro ao processar sua solicitação.',
+                        confirmButtonColor: '#3B82F6'
+                    });
+                });
+        });
+    });
+</script>
 
 <script>
     // Variáveis globais
