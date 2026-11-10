@@ -34,81 +34,93 @@
     <script src="{{ asset('js/theme.js') }}"></script>
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
 
-    <div class="min-h-screen flex items-center justify-center px-4">
-        <div class="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <main class="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
+        <div class="pointer-events-none absolute -left-32 -top-32 h-72 w-72 rounded-full bg-orange-200/50 blur-3xl dark:bg-orange-950/30"></div>
+        <div class="pointer-events-none absolute -bottom-40 -right-32 h-80 w-80 rounded-full bg-purple-200/50 blur-3xl dark:bg-purple-950/30"></div>
 
-            <h2 class="text-2xl font-bold text-center mb-6">
-                Login
-            </h2>
+        <section class="relative w-full max-w-md">
+            <div class="mb-8 text-center">
+                <a href="{{ config('app.url') }}" class="inline-flex items-center gap-2" aria-label="Ir para a página inicial">
+                    <img src="/favicon.ico" class="h-9 w-9" alt="">
+                    <span class="bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
+                        ShopYou
+                    </span>
+                </a>
+                <p class="mt-5 text-sm text-slate-500 dark:text-slate-400">
+                    Entre para continuar suas compras
+                </p>
+            </div>
 
-            <form id="loginForm">
-                <div class="mb-4">
-                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        E-mail
-                    </label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        required
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600
-                               rounded-md shadow-sm bg-white dark:bg-gray-700
-                               focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    >
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60 sm:p-8 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/20">
+                <div class="mb-7">
+                    <h1 class="text-2xl font-semibold tracking-tight">Acesse sua conta</h1>
+                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        Informe seus dados para entrar.
+                    </p>
                 </div>
 
-                <div class="mb-6">
-                    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Senha
-                    </label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        required
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600
-                               rounded-md shadow-sm bg-white dark:bg-gray-700
-                               focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    >
-                </div>
+                <form id="loginForm" class="space-y-5">
+                    <div>
+                        <label for="email" class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                            E-mail
+                        </label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            autocomplete="email"
+                            required
+                            class="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-pink-400"
+                            placeholder="voce@exemplo.com"
+                        >
+                    </div>
 
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center">
+                    <div>
+                        <label for="password" class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                            Senha
+                        </label>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            autocomplete="current-password"
+                            required
+                            class="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-pink-400"
+                            placeholder="Digite sua senha"
+                        >
+                    </div>
+
+                    <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                         <input
                             id="remember"
                             name="remember"
                             type="checkbox"
-                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            class="h-4 w-4 rounded border-slate-300 text-pink-600 focus:ring-pink-500 dark:border-slate-600 dark:bg-slate-800"
                         >
-                        <label for="remember" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                            Lembrar-me
-                        </label>
-                    </div>
+                        Lembrar-me
+                    </label>
+
+                    <button
+                        type="submit"
+                        class="w-full rounded-lg bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-pink-500/20 transition hover:brightness-105 focus:outline-none focus:ring-4 focus:ring-pink-500/25 active:scale-[.99]"
+                    >
+                        Entrar
+                    </button>
+                </form>
+
+                <div class="mt-7 border-t border-slate-100 pt-6 text-center dark:border-slate-800">
+                    <p class="text-sm text-slate-500 dark:text-slate-400">
+                        Não tem uma conta?
+                        <a href="{{ route('client.register') }}" class="font-semibold text-pink-600 transition hover:text-purple-600 dark:text-pink-400 dark:hover:text-purple-400">
+                            Cadastre-se
+                        </a>
+                    </p>
                 </div>
-
-                <button
-                    type="submit"
-                    class="w-full flex justify-center py-2 px-4 rounded-md shadow-sm
-                           text-sm font-medium text-white bg-blue-600 hover:bg-blue-700
-                           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                    Entrar
-                </button>
-            </form>
-
-            <div class="mt-6 text-center">
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Não tem uma conta?
-                    <a href="{{ route('client.register') }}"
-                       class="font-medium text-blue-600 hover:text-blue-500">
-                        Cadastre-se
-                    </a>
-                </p>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <!-- Login JS -->
     <script>
