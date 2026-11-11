@@ -48,6 +48,7 @@ ln -s /home/u233139548/domains/you.tec.br/public_html/shop/storage/app/public st
 public key: APP_USR-363f0832-00ac-45ef-9be2-09cd05088f45
 access token: APP_USR-7300805590293882-102309-942806e25252e2ab4eeefb6f17bd74d2-2653728447
 webhook: 1b72ab987b7828101db2c6a88336efbc10c92f8ae3e2f5fccac0375c3356f52b
+webhooksecret: 1b72ab987b7828101db2c6a88336efbc10c92f8ae3e2f5fccac0375c3356f52b
 
 Vendedor
 2653728447
