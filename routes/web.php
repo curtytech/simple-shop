@@ -64,4 +64,5 @@ Route::get('/payments/mercadopago/callback/pending', [PaymentController::class, 
 
 Route::post('/checkout/mercadopago', [MercadoPagoController::class, 'checkout'])->name('mercadopago.checkout');
 
-Route::post('/webhooks/mercadopago/{store}', [PaymentController::class, 'webhook'])->name('mercadopago.webhook');
+Route::match(['get', 'post'], '/webhooks/mercadopago/{store?}', [PaymentController::class, 'webhook'])->name('mercadopago.webhook');
+Route::match(['get', 'post'], '/api/webhooks/mercadopago/{store?}', [PaymentController::class, 'webhook'])->name('mercadopago.webhook.api');

@@ -17,7 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->trustProxies(at: '*');
         $middleware->validateCsrfTokens(except: [
+            'webhooks/mercadopago',
             'webhooks/mercadopago/*',
+            'api/webhooks/mercadopago',
+            'api/webhooks/mercadopago/*',
             'webhooks/mercadolivre',
         ]);
     })

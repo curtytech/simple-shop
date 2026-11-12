@@ -9,3 +9,5 @@ use Illuminate\Support\Facades\Log;
 Route::prefix('api/payments/mercadopago')->group(function () {
     Route::post('/preference', [PaymentController::class, 'createMercadoPagoPreference'])->name('mercadopago.preference');
 });
+
+Route::match(['get', 'post'], '/webhooks/mercadopago/{store?}', [PaymentController::class, 'webhook']);

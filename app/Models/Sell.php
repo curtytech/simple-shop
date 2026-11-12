@@ -24,6 +24,11 @@ class Sell extends Model
         'expiration_date',
     ];
 
+    protected $casts = [
+        'data_pagamento' => 'datetime',
+        'expiration_date' => 'datetime',
+    ];
+
     /**
      * Get the client that made the purchase.
      */
