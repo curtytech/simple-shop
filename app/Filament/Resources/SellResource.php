@@ -68,6 +68,12 @@ class SellResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'approved' => 'Aprovada',
+                        'pending' => 'Pendente',
+                        'failure' => 'Cancelada',
+                        default => $state,
+                    })
                     ->color(fn(string $state): string => match ($state) {
                         'approved' => 'success',
                         'pending' => 'warning',
