@@ -140,7 +140,7 @@
                     <!-- Imagem do Produto -->
                     <div class="w-full h-48 bg-gray-200">
                         @if($product->images && count($product->images) > 0)
-                        <img src="{{ $product->images[0] }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                        <img src="{{ Storage::url($product->images[0]) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
                         @else
                         <div class="w-full h-full flex items-center justify-center">
                             <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
