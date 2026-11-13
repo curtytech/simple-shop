@@ -27,8 +27,9 @@ class PaymentController extends Controller
         ]);
 
         $store = User::findOrFail($validated['store_id']);
+        $credentials = $store->mercadopagoCredentials();
 
-        if (!$store->mercadopago_access_token || !$store->mercadopago_public_key) {
+        if (!$credentials['access_token'] || !$credentials['public_key']) {
             return response()->json([
                 'message' => 'Loja não configurou Mercado Pago.',
             ], 422);
@@ -218,7 +219,11 @@ class PaymentController extends Controller
                 'pending' => $pendingUrl,
             ],
             'auto_return' => 'approved',
-            'notification_url' => route('mercadopago.webhook', ['store' => $store->id]),
+            'notification_url' => $credentials['webhook_url']
+                ?: route('mercadopago.webhook', [
+                    'store' => $store->id,
+                    'environment' => $store->mercadopago_environment ?? 'production',
+                ]),
             'statement_descriptor' => $descriptor,
             'external_reference' => $externalReference,
             'metadata' => [
@@ -233,7 +238,7 @@ class PaymentController extends Controller
 
         $baseUrl = 'https://api.mercadopago.com';
         $endpoint = '/checkout/preferences';
-        $token = $store->mercadopago_access_token;
+        $token = $credentials['access_token'];
 
         $headers = []; // sem integrator-id, não há coluna correspondente
 
@@ -263,8 +268,8 @@ class PaymentController extends Controller
         return response()->json([
             'init_point' => $data['init_point'] ?? null,
             'sandbox_init_point' => $data['sandbox_init_point'] ?? null,
-            'public_key' => $store->mercadopago_public_key,
-            'sandbox' => (bool) $store->mercadopago_sandbox,
+            'public_key' => $credentials['public_key'],
+            'sandbox' => ($store->mercadopago_environment ?? 'production') === 'sandbox',
         ]);
     }
 
@@ -316,9 +321,12 @@ class PaymentController extends Controller
         // Se não identificado pela URL, tenta localizar pelo user_id do payload (Mercado Pago User ID / Collector ID)
         if (!$storeModel && $request->filled('user_id')) {
             $mpUserId = (string) $request->input('user_id');
-            $storeModel = User::where('mercadopago_access_token', 'like', "%-{$mpUserId}")
-                ->orWhere('mercadopago_access_token', 'like', "%{$mpUserId}%")
-                ->first();
+            $storeModel = User::where(function ($query) use ($mpUserId) {
+                $query->where('mercadopago_access_token', 'like', "%-{$mpUserId}")
+                    ->orWhere('mercadopago_access_token', 'like', "%{$mpUserId}%")
+                    ->orWhere('mercadopago_sandbox_access_token', 'like', "%-{$mpUserId}")
+                    ->orWhere('mercadopago_sandbox_access_token', 'like', "%{$mpUserId}%");
+            })->first();
         }
 
         // Fallback: verificar se existe venda prévia com esse payment_id
@@ -331,10 +339,17 @@ class PaymentController extends Controller
 
         // Fallback: pegar a loja padrão que possua access token do Mercado Pago
         if (!$storeModel) {
-            $storeModel = User::whereNotNull('mercadopago_access_token')->first();
+            $storeModel = User::whereNotNull('mercadopago_access_token')
+                ->orWhereNotNull('mercadopago_sandbox_access_token')
+                ->first();
         }
 
-        if (!$storeModel || !$storeModel->mercadopago_access_token) {
+        $environment = $request->has('live_mode')
+            ? ($request->boolean('live_mode') ? 'production' : 'sandbox')
+            : $request->query('environment', $storeModel?->mercadopago_environment ?? 'production');
+        $credentials = $storeModel?->mercadopagoCredentials($environment);
+
+        if (!$storeModel || !$credentials['access_token']) {
             Log::warning('Webhook recebido mas loja sem token ou não localizada.', [
                 'store_param' => $store,
                 'payload' => $request->all(),
@@ -343,7 +358,7 @@ class PaymentController extends Controller
         }
 
         // 3. Consulta à API do Mercado Pago
-        $accessToken = $storeModel->mercadopago_access_token;
+        $accessToken = $credentials['access_token'];
         $detail = null;
         $mpStatus = null;
         $dateApproved = null;

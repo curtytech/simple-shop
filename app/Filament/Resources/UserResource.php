@@ -263,29 +263,70 @@ class UserResource extends Resource
                 
                 Forms\Components\Section::make('Mercado Pago')
                     ->schema([
+                        Forms\Components\Select::make('mercadopago_environment')
+                            ->label('Ambiente ativo')
+                            ->options([
+                                'production' => 'Produção',
+                                'sandbox' => 'Homologação (Sandbox)',
+                            ])
+                            ->default('production')
+                            ->required()
+                            ->live()
+                            ->helperText('Define quais credenciais serão usadas no checkout e no processamento das notificações.'),
+                    ]),
+                Forms\Components\Section::make('Credenciais de produção')
+                    ->schema([
                         Forms\Components\TextInput::make('mercadopago_public_key')
                             ->label('Public Key')
                             ->maxLength(255)
-                            ->helperText('Chave pública do Mercado Pago para o Checkout'),
+                            ->required(fn (Forms\Get $get): bool => $get('mercadopago_environment') === 'production' || filled($get('mercadopago_access_token')))
+                            ->helperText('Obrigatória quando Produção estiver selecionada.'),
                         Forms\Components\TextInput::make('mercadopago_access_token')
                             ->label('Access Token')
                             ->password()
                             ->revealable()
                             ->maxLength(255)
-                            ->helperText('Token de acesso (secreto) da sua conta Mercado Pago'),
-                        Forms\Components\Toggle::make('mercadopago_sandbox')
-                            ->label('Modo Sandbox')
-                            ->helperText('Ative para testar pagamentos sem cobrança'),
+                            ->required(fn (Forms\Get $get): bool => $get('mercadopago_environment') === 'production' || filled($get('mercadopago_public_key')))
+                            ->helperText('Obrigatório quando Produção estiver selecionada.'),
                         Forms\Components\TextInput::make('mercadopago_webhook_url')
                             ->label('Webhook URL')
+                            ->url()
+                            ->nullable()
                             ->maxLength(255)
-                            ->helperText('URL pública para receber notificações do Mercado Pago'),
+                            ->helperText('URL pública de notificações desta conta de produção.'),
                         Forms\Components\TextInput::make('mercadopago_webhook_secret')
                             ->label('Webhook Secret')
                             ->password()
                             ->revealable()
                             ->maxLength(255)
-                            ->helperText('Segredo para validar o webhook (se aplicável)'),
+                            ->helperText('Segredo configurado para o webhook de produção.'),
+                    ])->columns(2),
+                Forms\Components\Section::make('Credenciais de homologação (Sandbox)')
+                    ->schema([
+                        Forms\Components\TextInput::make('mercadopago_sandbox_public_key')
+                            ->label('Public Key')
+                            ->maxLength(255)
+                            ->required(fn (Forms\Get $get): bool => $get('mercadopago_environment') === 'sandbox' || filled($get('mercadopago_sandbox_access_token')))
+                            ->helperText('Obrigatória quando Homologação estiver selecionada.'),
+                        Forms\Components\TextInput::make('mercadopago_sandbox_access_token')
+                            ->label('Access Token')
+                            ->password()
+                            ->revealable()
+                            ->maxLength(255)
+                            ->required(fn (Forms\Get $get): bool => $get('mercadopago_environment') === 'sandbox' || filled($get('mercadopago_sandbox_public_key')))
+                            ->helperText('Obrigatório quando Homologação estiver selecionada.'),
+                        Forms\Components\TextInput::make('mercadopago_sandbox_webhook_url')
+                            ->label('Webhook URL')
+                            ->url()
+                            ->nullable()
+                            ->maxLength(255)
+                            ->helperText('URL pública de notificações desta conta de homologação.'),
+                        Forms\Components\TextInput::make('mercadopago_sandbox_webhook_secret')
+                            ->label('Webhook Secret')
+                            ->password()
+                            ->revealable()
+                            ->maxLength(255)
+                            ->helperText('Segredo configurado para o webhook de homologação.'),
                     ])->columns(2),
             ]);
     }
