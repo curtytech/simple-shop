@@ -20,6 +20,7 @@
             }
         }
     </script>
+    @livewireStyles
 
 </head>
 
@@ -224,7 +225,7 @@
     <!-- Modal do Carrinho -->
     <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden dark:bg-gray-900">
+            <div class="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto dark:bg-gray-900">
                 <div class="flex justify-between items-center p-6 border-b border-gray-400">
                     <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Meu Carrinho</h3>
                     <button id="close-cart-modal" class="text-gray-400 hover:text-gray-600">
@@ -238,9 +239,13 @@
                     <!-- Conteúdo do carrinho será carregado aqui -->
                 </div>
 
+                <div class="max-h-72 overflow-y-auto border-t border-gray-200 p-6 dark:border-gray-700">
+                    @livewire('shipping-calculator', ['storeId' => $store->id])
+                </div>
+
                 <div class="border-t border-gray-400 p-6">
                     <div class="flex justify-between items-center mb-4">
-                        <span class="text-lg font-semibold">Total:</span>
+                        <span class="text-lg font-semibold">Subtotal dos produtos:</span>
                         <span id="cart-total" class="text-2xl font-bold text-green-600">R$ 0,00</span>
                     </div>
                     <div class="flex space-x-3">
@@ -852,6 +857,7 @@
             });
         }
     </script>
+    @livewireScripts
 </body>
 
 </html>

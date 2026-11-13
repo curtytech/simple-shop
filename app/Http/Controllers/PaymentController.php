@@ -9,12 +9,13 @@ use App\Models\OldCartItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
+use App\Services\ShippingService;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    public function createMercadoPagoPreference(Request $request)
+    public function createMercadoPagoPreference(Request $request, ShippingService $shippingService)
     {
 
         $validated = $request->validate([
@@ -33,19 +34,31 @@ class PaymentController extends Controller
             ], 422);
         }
 
+        $client = auth('client')->user();
+        if (!$client) {
+            return response()->json([
+                'message' => 'Entre na sua conta para finalizar a compra.',
+                'requires_auth' => true,
+            ], 401);
+        }
+
+        $cart = $client->getCartForStore($store);
+        $cartItems = $cart->items()
+            ->with('product')
+            ->orderBy('id')
+            ->get();
+        $usesCartItems = empty($validated['items'] ?? []);
         $items = $validated['items'] ?? [];
 
         // Carregar itens do carrinho do cliente autenticado, se não enviados
-        if (empty($items) && auth('client')->check()) {
-            $client = auth('client')->user();
-            $cart = $client->getCartForStore($store);
-            $items = $cart->items()->with('product')->get()->map(function ($item) {
+        if ($usesCartItems) {
+            $items = $cartItems->map(function ($item) {
                 return [
                     'id' => (string) $item->product_id,
                     'title' => $item->product->name,
                     'quantity' => (int) $item->quantity,
                     'currency_id' => 'BRL',
-                    'unit_price' => (float) $item->product->price,
+                    'unit_price' => (float) $item->price,
                 ];
             })->toArray();
         }
@@ -56,14 +69,96 @@ class PaymentController extends Controller
             ], 422);
         }
 
-        $payer = [];
-        if (auth('client')->check()) {
-            $payerClient = auth('client')->user();
-            $payer = [
-                'name' => $payerClient->name,
-                'email' => $payerClient->email,
+        $shippingData = null;
+        $selectedShipping = session()->get('shipping.selected.' . $store->id);
+        if ($selectedShipping !== null) {
+            if (!$usesCartItems || !is_array($selectedShipping)) {
+                return response()->json([
+                    'message' => 'Recalcule o frete para os itens atuais do carrinho.',
+                ], 422);
+            }
+
+            $shippingItems = $cartItems->map(function ($item): array {
+                return [
+                    'id' => (string) $item->product_id,
+                    'width' => (float) $item->product->width_cm,
+                    'height' => (float) $item->product->height_cm,
+                    'length' => (float) $item->product->length_cm,
+                    'weight' => (float) $item->product->weight_kg,
+                    'insurance_value' => (float) $item->price,
+                    'quantity' => (int) $item->quantity,
+                ];
+            })->all();
+            $destinationPostalCode = $selectedShipping['destination_postal_code'] ?? '';
+
+            if (
+                (int) ($selectedShipping['store_id'] ?? 0) !== $store->id
+                || !is_string($destinationPostalCode)
+                || preg_match('/^\d{8}$/', $destinationPostalCode) !== 1
+                || ($selectedShipping['items_signature'] ?? null) !== $shippingService->itemsSignature($shippingItems)
+            ) {
+                session()->forget('shipping.selected.' . $store->id);
+
+                return response()->json([
+                    'message' => 'O carrinho foi alterado. Calcule o frete novamente.',
+                ], 422);
+            }
+
+            $availableShipping = $shippingService->calculate($destinationPostalCode, $shippingItems);
+            $selectedOption = collect($availableShipping)->first(
+                fn (array $option): bool =>
+                    (string) ($option['id'] ?? '') === (string) ($selectedShipping['id'] ?? '')
+            );
+
+            if (!is_array($selectedOption)) {
+                session()->forget('shipping.selected.' . $store->id);
+
+                return response()->json([
+                    'message' => 'A opção de frete não está mais disponível. Calcule novamente.',
+                ], 422);
+            }
+
+            if (
+                !is_numeric($selectedShipping['custom_price'] ?? null)
+                || round((float) $selectedShipping['custom_price'], 2)
+                    !== round((float) $selectedOption['custom_price'], 2)
+            ) {
+                session()->forget('shipping.selected.' . $store->id);
+
+                return response()->json([
+                    'message' => 'O preço do frete mudou. Calcule e selecione uma opção novamente.',
+                ], 422);
+            }
+
+            $shippingPrice = (float) $selectedOption['custom_price'];
+            $shippingCompany = (string) data_get($selectedOption, 'company.name', 'Transportadora');
+            $shippingName = (string) ($selectedOption['name'] ?? 'Frete');
+            $shippingData = [
+                'service_id' => (string) $selectedOption['id'],
+                'service_name' => $shippingName,
+                'company_name' => $shippingCompany,
+                'price' => $shippingPrice,
+                'delivery_time' => $selectedOption['custom_delivery_time']
+                    ?? $selectedOption['delivery_time']
+                    ?? null,
+                'delivery_range' => $selectedOption['custom_delivery_range']
+                    ?? $selectedOption['delivery_range']
+                    ?? null,
+                'destination_postal_code' => $destinationPostalCode,
+            ];
+            $items[] = [
+                'id' => 'shipping-' . $selectedOption['id'],
+                'title' => 'Frete - ' . $shippingCompany . ' - ' . $shippingName,
+                'quantity' => 1,
+                'currency_id' => 'BRL',
+                'unit_price' => $shippingPrice,
             ];
         }
+
+        $payer = [
+            'name' => $client->name,
+            'email' => $client->email,
+        ];
 
         // Garantir back_urls válidas (tratando strings vazias)
         $baseAppUrl = config('app.url') ?: url('/');
@@ -88,25 +183,26 @@ class PaymentController extends Controller
 
         // Cria o carrinho histórico e a venda antes de enviar ao MP para vincular na preferência
         $oldCart = OldCart::create([
-            'client_id' => auth('client')->id(),
+            'client_id' => $client->id,
             'user_id' => $store->id,
         ]);
 
-        foreach ($cart->items as $item) {
+        foreach ($cartItems as $item) {
             OldCartItem::create([
                 'old_cart_id' => $oldCart->id,
                 'product_id' => $item->product_id,
                 'quantity' => $item->quantity,
-                'price' => $item->product->price,
+                'price' => $item->price,
             ]);
         }
 
         $sell = Sell::create([
-            'client_id' => auth('client')->id(),
+            'client_id' => $client->id,
             'user_id' => $store->id,
             'old_cart_id' => $oldCart->id,
-            'total' => $cart->total,
+            'total' => $cart->total + (float) ($shippingData['price'] ?? 0),
             'status' => 'pending',
+            'shipping_data' => $shippingData,
         ]);
 
         $externalReference = (string) $sell->id;
@@ -127,7 +223,7 @@ class PaymentController extends Controller
             'external_reference' => $externalReference,
             'metadata' => [
                 'store_id' => $store->id,
-                'client_id' => auth('client')->id(),
+                'client_id' => $client->id,
                 'sell_id' => $sell->id,
                 'old_cart_id' => $oldCart->id,
                 'cart_id' => $cart->id,

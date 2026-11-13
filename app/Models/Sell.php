@@ -16,6 +16,7 @@ class Sell extends Model
         'old_cart_id',
         'total',
         'status',
+        'shipping_data',
         'mercadopago_preference_id',
         'mercadopago_payment_id',
         'mercadopago_status',
@@ -27,6 +28,7 @@ class Sell extends Model
     protected $casts = [
         'data_pagamento' => 'datetime',
         'expiration_date' => 'datetime',
+        'shipping_data' => 'array',
     ];
 
     /**

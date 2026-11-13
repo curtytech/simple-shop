@@ -13,6 +13,7 @@ use Filament\Tables\Table;
 use Filament\Forms\Components\FileUpload;
 use Filament\Tables\Columns\ImageColumn;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -28,6 +29,61 @@ class UserResource extends Resource
     protected static ?string $modelLabel = 'Loja';
     
     protected static ?string $pluralModelLabel = 'Lojas';
+
+    public static function canViewAny(): bool
+    {
+        return static::isAdmin() || auth()->user()?->role === 'store';
+    }
+
+    public static function canCreate(): bool
+    {
+        return static::isAdmin();
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        $user = auth()->user();
+
+        return static::isAdmin()
+            || (
+                $user?->role === 'store'
+                && (string) $record->getKey() === (string) $user->getAuthIdentifier()
+                && $record->role === 'store'
+            );
+    }
+
+    public static function canView(Model $record): bool
+    {
+        return static::canEdit($record);
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return static::isAdmin();
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return static::isAdmin();
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = auth()->user();
+
+        if ($user?->role === 'admin') {
+            return $query;
+        }
+
+        if ($user?->role !== 'store') {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query
+            ->where('role', 'store')
+            ->whereKey($user->getAuthIdentifier());
+    }
 
     public static function form(Form $form): Form
     {
@@ -84,6 +140,7 @@ class UserResource extends Resource
                                 'admin' => 'Administrador',
                                 'store' => 'Loja',
                             ])
+                            ->visible(fn (): bool => static::isAdmin())
                             ->required()
                             ->default('store'),
                         
@@ -395,5 +452,10 @@ class UserResource extends Resource
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
+    }
+
+    private static function isAdmin(): bool
+    {
+        return auth()->user()?->role === 'admin';
     }
 }

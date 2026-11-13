@@ -48,4 +48,23 @@ class StoreController extends Controller
 
         return view('stores.client-products', compact('store', 'purchases'));
     }
+
+    public function privacyPolicy($slug)
+    {
+        return $this->legalDocument($slug, 'privacy');
+    }
+
+    public function termsOfUse($slug)
+    {
+        return $this->legalDocument($slug, 'terms');
+    }
+
+    private function legalDocument(string $slug, string $document)
+    {
+        $store = User::where('slug', $slug)
+            ->where('role', 'store')
+            ->firstOrFail();
+
+        return view('stores.legal', compact('store', 'document'));
+    }
 }

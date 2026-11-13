@@ -92,6 +92,39 @@ class ProductResource extends Resource
                     ])
                     ->columns(2),
 
+                Forms\Components\Section::make('Dimensões para Frete')
+                    ->description('Informe as dimensões da embalagem em centímetros e o peso em quilogramas.')
+                    ->schema([
+                        Forms\Components\TextInput::make('width_cm')
+                            ->label('Largura')
+                            ->numeric()
+                            ->minValue(0.01)
+                            ->step(0.01)
+                            ->suffix('cm'),
+
+                        Forms\Components\TextInput::make('height_cm')
+                            ->label('Altura')
+                            ->numeric()
+                            ->minValue(0.01)
+                            ->step(0.01)
+                            ->suffix('cm'),
+
+                        Forms\Components\TextInput::make('length_cm')
+                            ->label('Comprimento')
+                            ->numeric()
+                            ->minValue(0.01)
+                            ->step(0.01)
+                            ->suffix('cm'),
+
+                        Forms\Components\TextInput::make('weight_kg')
+                            ->label('Peso')
+                            ->numeric()
+                            ->minValue(0.001)
+                            ->step(0.001)
+                            ->suffix('kg'),
+                    ])
+                    ->columns(4),
+
                 Forms\Components\Section::make('Imagens')
                     ->schema([
                         Forms\Components\FileUpload::make('images')

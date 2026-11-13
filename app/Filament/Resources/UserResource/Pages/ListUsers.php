@@ -18,12 +18,22 @@ class ListUsers extends ListRecords
         return [
             Actions\CreateAction::make()
                 ->label('Novo Usuário')
-                ->icon('heroicon-o-plus'),
+                ->icon('heroicon-o-plus')
+                ->visible(fn (): bool => UserResource::canCreate()),
         ];
     }
     
     public function getTabs(): array
     {
+        if (auth()->user()?->role !== 'admin') {
+            return [
+                'minha-loja' => Tab::make('Minha Loja')
+                    ->modifyQueryUsing(fn (Builder $query): Builder =>
+                        $query->whereKey(auth()->id())
+                    ),
+            ];
+        }
+
         return [
             'todos' => Tab::make('Todos')
                 ->badge(User::count()),

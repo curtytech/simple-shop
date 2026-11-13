@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'melhor_envio' => [
+        'token' => env('MELHOR_ENVIO_TOKEN'),
+        'sandbox' => (bool) env('MELHOR_ENVIO_SANDBOX', true),
+        'origin_cep' => env('MELHOR_ENVIO_ORIGIN_CEP'),
+    ],
+
 ];

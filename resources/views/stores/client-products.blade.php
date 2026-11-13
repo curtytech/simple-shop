@@ -106,6 +106,23 @@
                     </div>
                     @endforeach
                 </div>
+                @if($purchase->shipping_data)
+                <div class="border-t border-gray-100 bg-gray-50 px-6 py-4">
+                    <p class="font-medium text-gray-900">
+                        Frete: {{ $purchase->shipping_data['company_name'] }} —
+                        {{ $purchase->shipping_data['service_name'] }}
+                    </p>
+                    <p class="text-sm text-gray-600">
+                        R$ {{ number_format((float) $purchase->shipping_data['price'], 2, ',', '.') }}
+                        @if(is_array($purchase->shipping_data['delivery_range'] ?? null))
+                            · Prazo de {{ $purchase->shipping_data['delivery_range']['min'] ?? '?' }}
+                            a {{ $purchase->shipping_data['delivery_range']['max'] ?? '?' }} dias úteis
+                        @elseif(is_numeric($purchase->shipping_data['delivery_time'] ?? null))
+                            · Prazo de {{ $purchase->shipping_data['delivery_time'] }} dias úteis
+                        @endif
+                    </p>
+                </div>
+                @endif
             </div>
             @endforeach
         </div>

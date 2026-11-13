@@ -18,12 +18,20 @@ class Product extends Model
         'description',
         'price',
         'stock',
+        'width_cm',
+        'height_cm',
+        'length_cm',
+        'weight_kg',
         'images',
     ];
 
     protected $casts = [
         'images' => 'array',
         'price' => 'decimal:2',
+        'width_cm' => 'decimal:2',
+        'height_cm' => 'decimal:2',
+        'length_cm' => 'decimal:2',
+        'weight_kg' => 'decimal:3',
     ];
 
     public function user(): BelongsTo
