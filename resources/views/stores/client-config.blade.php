@@ -656,7 +656,7 @@
                         }
                     </div>
                     <div class="flex-1">
-                        <h4 class="font-semibold">${item.product.name} aaa</h4>
+                        <h4 class="font-semibold">${item.product.name}</h4>
                         <p class="text-gray-600">R$ ${parseFloat(item.product.price).toFixed(2).replace('.', ',')}</p>
                     </div>
                     <div class="flex items-center space-x-2">
