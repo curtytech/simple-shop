@@ -93,6 +93,7 @@ class SellResource extends Resource
             ->actions([
                 // Tables\Actions\ViewAction::make(),
             ])
+            ->recordUrl(fn (Sell $record): string => static::getUrl('edit', ['record' => $record]))
             ->bulkActions([
                 // Tables\Actions\BulkActionGroup::make([
                 //     Tables\Actions\DeleteBulkAction::make(),
@@ -111,6 +112,7 @@ class SellResource extends Resource
     {
         return [
             'index' => Pages\ListSells::route('/'),
+            'edit' => Pages\EditSell::route('/{record}/edit'),
         ];
     }
 

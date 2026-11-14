@@ -643,12 +643,12 @@
                 <div class="flex items-center space-x-4 p-4 border-b">
                     <div class="w-16 h-16 bg-gray-200 rounded">
                         ${item.product.images && item.product.images.length > 0
-                            ? `<img src="${item.product.images[0]}" alt="${item.product.name}" class="w-full h-full object-cover rounded">`
+                            ? `<img src=" Storage::url((${item.product.images[0]})" alt="${item.product.name}" class="w-full h-full object-cover rounded">`
                             : '<div class="w-full h-full flex items-center justify-center"><svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></div>'
                         }
                     </div>
                     <div class="flex-1">
-                        <h4 class="font-semibold">${item.product.name}</h4>
+                        <h4 class="font-semibold">${item.product.name} sss</h4>
                         <p class="text-gray-600">R$ ${parseFloat(item.product.price).toFixed(2).replace('.', ',')}</p>
                     </div>
                     <div class="flex items-center space-x-2">

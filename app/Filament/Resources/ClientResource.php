@@ -282,6 +282,7 @@ class ClientResource extends Resource
                 Tables\Actions\DeleteAction::make()
                     ->label('Excluir'),
             ])
+            ->recordUrl(fn (Client $record): string => static::getUrl('edit', ['record' => $record]))
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()

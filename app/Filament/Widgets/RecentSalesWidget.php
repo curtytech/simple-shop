@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\SellResource;
 use App\Models\Sell;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -60,6 +61,7 @@ class RecentSalesWidget extends TableWidget
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->recordUrl(fn (Sell $record): string => SellResource::getUrl('edit', ['record' => $record]))
             ->paginated(false);
     }
 }

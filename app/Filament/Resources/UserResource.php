@@ -470,6 +470,7 @@ class UserResource extends Resource
                 Tables\Actions\DeleteAction::make()
                     ->label('Excluir'),
             ])
+            ->recordUrl(fn (User $record): string => static::getUrl('edit', ['record' => $record]))
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
