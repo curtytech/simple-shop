@@ -66,12 +66,7 @@ class ShippingService
         $baseUrl = $sandbox
             ? 'https://sandbox.melhorenvio.com.br/api/v2'
             : 'https://melhorenvio.com.br/api/v2';
-        $payload = [
-            'from' => ['postal_code' => $originPostalCode],
-            'to' => ['postal_code' => $destinationPostalCode],
-            'products' => [],
-            'package' => $package,
-        ];
+        $payload = $this->createPayload($destinationPostalCode, $originPostalCode, $items, $package);
         $cacheKey = 'melhor_envio:shipment:' . hash('sha256', json_encode([
             'sandbox' => $sandbox,
             'payload' => $payload,
@@ -139,6 +134,34 @@ class ShippingService
 
     /**
      * @param array<int, array<string, int|float|string>> $items
+     * @return array{
+     *     from: array{postal_code: string},
+     *     to: array{postal_code: string},
+     *     products: array<int, array<string, int|float|string>>,
+     *     package: array{height: float, width: float, length: float, weight: float}
+     * }
+     */
+    public function buildPayload(string $destinationPostalCode, array $items): array
+    {
+        $originPostalCode = config('services.melhor_envio.origin_cep');
+        if (!is_string($originPostalCode)) {
+            throw new InvalidArgumentException('Informe um CEP de origem válido.');
+        }
+
+        if ($items === []) {
+            throw new InvalidArgumentException('Informe ao menos um item para calcular o frete.');
+        }
+
+        return $this->createPayload(
+            $this->normalizePostalCode($destinationPostalCode),
+            $this->normalizePostalCode($originPostalCode),
+            $items,
+            $this->configuredPackage()
+        );
+    }
+
+    /**
+     * @param array<int, array<string, int|float|string>> $items
      */
     public function itemsSignature(array $items): string
     {
@@ -175,5 +198,29 @@ class ShippingService
         }
 
         return $package;
+    }
+
+    /**
+     * @param array<int, array<string, int|float|string>> $items
+     * @param array{height: float, width: float, length: float, weight: float} $package
+     * @return array{
+     *     from: array{postal_code: string},
+     *     to: array{postal_code: string},
+     *     products: array<int, array<string, int|float|string>>,
+     *     package: array{height: float, width: float, length: float, weight: float}
+     * }
+     */
+    private function createPayload(
+        string $destinationPostalCode,
+        string $originPostalCode,
+        array $items,
+        array $package
+    ): array {
+        return [
+            'from' => ['postal_code' => $originPostalCode],
+            'to' => ['postal_code' => $destinationPostalCode],
+            'products' => $items,
+            'package' => $package,
+        ];
     }
 }

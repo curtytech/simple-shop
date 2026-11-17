@@ -21,6 +21,8 @@ class ShippingCalculator extends Component
 
     public array $shippingOptions = [];
 
+    public array $requestPayload = [];
+
     public ?string $selectedOptionId = null;
 
     public ?string $errorMessage = null;
@@ -43,6 +45,7 @@ class ShippingCalculator extends Component
         $this->errorMessage = null;
         $this->hasCalculated = false;
         $this->shippingOptions = [];
+        $this->requestPayload = [];
         $this->selectedOptionId = null;
         session()->forget([$this->quoteSessionKey(), $this->selectedSessionKey()]);
 
@@ -113,6 +116,10 @@ class ShippingCalculator extends Component
             return;
         }
 
+        $this->requestPayload = $shippingService->buildPayload(
+            $this->destinationPostalCode,
+            $items
+        );
         $this->shippingOptions = $shippingService->calculate(
             $this->destinationPostalCode,
             $items
@@ -163,6 +170,7 @@ class ShippingCalculator extends Component
         ) {
             $this->errorMessage = 'O carrinho foi alterado. Calcule o frete novamente.';
             $this->shippingOptions = [];
+            $this->requestPayload = [];
             $this->selectedOptionId = null;
             session()->forget([$this->quoteSessionKey(), $this->selectedSessionKey()]);
 
@@ -200,6 +208,7 @@ class ShippingCalculator extends Component
     public function updatedDestinationPostalCode(): void
     {
         $this->shippingOptions = [];
+        $this->requestPayload = [];
         $this->selectedOptionId = null;
         $this->errorMessage = null;
         $this->hasCalculated = false;

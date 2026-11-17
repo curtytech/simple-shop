@@ -56,7 +56,9 @@ it('calcula fretes usando o pacote configurado e retorna do menor para o maior p
         'quantity' => 2,
     ]];
 
-    $services = app(ShippingService::class)->calculate('12345-678', $items);
+    config()->set('services.melhor_envio.origin_cep', '20040-002');
+
+    $services = app(ShippingService::class)->calculate('01001000', $items);
 
     expect(array_column($services, 'id'))->toBe([2, 1]);
 
@@ -64,9 +66,17 @@ it('calcula fretes usando o pacote configurado e retorna do menor para o maior p
         $payload = $request->data();
 
         return $request->url() === 'https://sandbox.melhorenvio.com.br/api/v2/me/shipment/calculate'
-            && data_get($payload, 'from.postal_code') === '01001000'
-            && data_get($payload, 'to.postal_code') === '12345678'
-            && data_get($payload, 'products') === []
+            && data_get($payload, 'from.postal_code') === '20040002'
+            && data_get($payload, 'to.postal_code') === '01001000'
+            && data_get($payload, 'products') === [[
+                'id' => 'product-42',
+                'width' => 15,
+                'height' => 10,
+                'length' => 20,
+                'weight' => 0.8,
+                'insurance_value' => 99.90,
+                'quantity' => 2,
+            ]]
             && data_get($payload, 'package') === [
                 'height' => 4.0,
                 'width' => 12.0,

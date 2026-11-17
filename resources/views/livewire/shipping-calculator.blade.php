@@ -41,6 +41,13 @@
         </p>
     @endif
 
+    @if($requestPayload !== [])
+        <details class="rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-700">
+            <summary class="cursor-pointer font-medium">Payload enviado para cotação</summary>
+            <pre class="mt-2 overflow-x-auto rounded bg-gray-50 p-3 text-xs dark:bg-gray-800">{{ json_encode($requestPayload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+        </details>
+    @endif
+
     @if($shippingOptions !== [])
         <fieldset class="space-y-3">
             <legend class="text-sm font-medium">Opções disponíveis</legend>
