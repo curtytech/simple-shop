@@ -12,10 +12,17 @@ beforeEach(function (): void {
     config()->set('services.melhor_envio.token', 'test-token');
     config()->set('services.melhor_envio.sandbox', true);
     config()->set('services.melhor_envio.origin_cep', '01001-000');
+    config()->set('services.melhor_envio.user_agent', 'Aplicacao curtytech@gmail.com');
+    config()->set('services.melhor_envio.package', [
+        'height' => 4,
+        'width' => 12,
+        'length' => 17,
+        'weight' => 0.3,
+    ]);
     Cache::store('array')->flush();
 });
 
-it('calcula fretes usando as dimensões do item e retorna do menor para o maior preço', function (): void {
+it('calcula fretes usando o pacote configurado e retorna do menor para o maior preço', function (): void {
     Http::fake([
         '*' => Http::response([
             [
@@ -59,8 +66,17 @@ it('calcula fretes usando as dimensões do item e retorna do menor para o maior 
         return $request->url() === 'https://sandbox.melhorenvio.com.br/api/v2/me/shipment/calculate'
             && data_get($payload, 'from.postal_code') === '01001000'
             && data_get($payload, 'to.postal_code') === '12345678'
-            && data_get($payload, 'products.0.width') === 15
-            && data_get($payload, 'products.0.quantity') === 2;
+            && data_get($payload, 'products') === []
+            && data_get($payload, 'package') === [
+                'height' => 4.0,
+                'width' => 12.0,
+                'length' => 17.0,
+                'weight' => 0.3,
+            ]
+            && $request->hasHeader('Accept', 'application/json')
+            && $request->hasHeader('Authorization', 'Bearer test-token')
+            && $request->hasHeader('Content-Type', 'application/json')
+            && $request->hasHeader('User-Agent', 'Aplicacao curtytech@gmail.com');
     });
 });
 

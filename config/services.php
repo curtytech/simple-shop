@@ -37,8 +37,15 @@ return [
 
     'melhor_envio' => [
         'token' => env('MELHOR_ENVIO_TOKEN'),
-        'sandbox' => (bool) env('MELHOR_ENVIO_SANDBOX', true),
+        'sandbox' => (bool) env('MELHOR_ENVIO_SANDBOX', false),
         'origin_cep' => env('MELHOR_ENVIO_ORIGIN_CEP'),
+        'user_agent' => env('MELHOR_ENVIO_USER_AGENT', 'Aplicacao curtytech@gmail.com'),
+        'package' => [
+            'height' => env('MELHOR_ENVIO_PACKAGE_HEIGHT', 4),
+            'width' => env('MELHOR_ENVIO_PACKAGE_WIDTH', 12),
+            'length' => env('MELHOR_ENVIO_PACKAGE_LENGTH', 17),
+            'weight' => env('MELHOR_ENVIO_PACKAGE_WEIGHT', 0.3),
+        ],
     ],
 
 ];

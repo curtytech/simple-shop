@@ -68,6 +68,18 @@ class ShippingCalculator extends Component
             $missingConfiguration[] = 'MELHOR_ENVIO_ORIGIN_CEP';
         }
 
+        foreach ([
+            'height' => 'MELHOR_ENVIO_PACKAGE_HEIGHT',
+            'width' => 'MELHOR_ENVIO_PACKAGE_WIDTH',
+            'length' => 'MELHOR_ENVIO_PACKAGE_LENGTH',
+            'weight' => 'MELHOR_ENVIO_PACKAGE_WEIGHT',
+        ] as $dimension => $environmentVariable) {
+            $value = config('services.melhor_envio.package.' . $dimension);
+            if (!is_numeric($value) || (float) $value <= 0) {
+                $missingConfiguration[] = $environmentVariable;
+            }
+        }
+
         if ($missingConfiguration !== []) {
             $this->errorMessage = 'Integração de frete não configurada. Defina no .env: '
                 . implode(', ', $missingConfiguration)

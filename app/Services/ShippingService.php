@@ -40,11 +40,24 @@ class ShippingService
             return [];
         }
 
-        $products = $this->normalizeItems($items);
+        if ($items === []) {
+            throw new InvalidArgumentException('Informe ao menos um item para calcular o frete.');
+        }
+
         $token = config('services.melhor_envio.token');
 
         if (!is_string($token) || $token === '') {
             Log::error('Melhor Envio não foi configurado: token ausente.');
+
+            return [];
+        }
+
+        try {
+            $package = $this->configuredPackage();
+        } catch (InvalidArgumentException $exception) {
+            Log::error('Melhor Envio não foi configurado com as dimensões do pacote.', [
+                'exception' => $exception->getMessage(),
+            ]);
 
             return [];
         }
@@ -56,7 +69,8 @@ class ShippingService
         $payload = [
             'from' => ['postal_code' => $originPostalCode],
             'to' => ['postal_code' => $destinationPostalCode],
-            'products' => $products,
+            'products' => [],
+            'package' => $package,
         ];
         $cacheKey = 'melhor_envio:shipment:' . hash('sha256', json_encode([
             'sandbox' => $sandbox,
@@ -72,7 +86,8 @@ class ShippingService
             ): array {
                 $response = Http::acceptJson()
                     ->withToken($token)
-                    ->withUserAgent(config('app.name') . ' - ' . config('app.url'))
+                    ->withHeaders(['Content-Type' => 'application/json'])
+                    ->withUserAgent(config('services.melhor_envio.user_agent'))
                     ->timeout(20)
                     ->post($baseUrl . '/me/shipment/calculate', $payload);
 
@@ -142,58 +157,23 @@ class ShippingService
     }
 
     /**
-     * @param array<int, array<string, int|float|string>> $items
-     * @return array<int, array<string, int|float|string>>
+     * @return array{height: float, width: float, length: float, weight: float}
      */
-    private function normalizeItems(array $items): array
+    private function configuredPackage(): array
     {
-        if ($items === []) {
-            throw new InvalidArgumentException('Informe ao menos um item para calcular o frete.');
+        $package = [];
+
+        foreach (['height', 'width', 'length', 'weight'] as $dimension) {
+            $value = config('services.melhor_envio.package.' . $dimension);
+            if (!is_numeric($value) || (float) $value <= 0) {
+                throw new InvalidArgumentException(
+                    'A dimensão ' . $dimension . ' deve ser um número maior que zero.'
+                );
+            }
+
+            $package[$dimension] = (float) $value;
         }
 
-        $products = [];
-
-        foreach (array_values($items) as $index => $item) {
-            if (!is_array($item)) {
-                throw new InvalidArgumentException("O item " . ($index + 1) . " deve ser um array.");
-            }
-
-            foreach (['width', 'height', 'length', 'weight', 'insurance_value', 'quantity'] as $field) {
-                if (!isset($item[$field]) || !is_numeric($item[$field])) {
-                    throw new InvalidArgumentException("O item " . ($index + 1) . " não possui {$field} válido.");
-                }
-            }
-
-            $quantity = (int) $item['quantity'];
-            if ((float) $item['quantity'] !== (float) $quantity) {
-                throw new InvalidArgumentException("O item " . ($index + 1) . " possui quantidade inválida.");
-            }
-            $dimensions = [
-                'width' => (float) $item['width'],
-                'height' => (float) $item['height'],
-                'length' => (float) $item['length'],
-                'weight' => (float) $item['weight'],
-                'insurance_value' => (float) $item['insurance_value'],
-                'quantity' => $quantity,
-            ];
-
-            if (
-                $dimensions['width'] <= 0
-                || $dimensions['height'] <= 0
-                || $dimensions['length'] <= 0
-                || $dimensions['weight'] <= 0
-                || $dimensions['insurance_value'] < 0
-                || $quantity < 1
-            ) {
-                throw new InvalidArgumentException("O item " . ($index + 1) . " possui dimensões ou valores inválidos.");
-            }
-
-            $products[] = array_merge(
-                ['id' => (string) ($item['id'] ?? $index + 1)],
-                $dimensions
-            );
-        }
-
-        return $products;
+        return $package;
     }
 }

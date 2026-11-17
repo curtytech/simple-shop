@@ -69,14 +69,23 @@
                        class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
             </div>
 
-            <input type="text" name="address" placeholder="Endereço" required
-                   class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+            <div>
+                <label for="zipcode" class="block text-sm font-medium">CEP</label>
+                <input type="text" name="zipcode" id="zipcode" placeholder="00000-000" maxlength="9"
+                       inputmode="numeric" autocomplete="postal-code" required
+                       class="mt-1 w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+                <p id="zipcodeStatus" class="mt-1 text-sm text-gray-600 dark:text-gray-400" aria-live="polite"></p>
+            </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label for="address" class="block text-sm font-medium">Endereço</label>
+                <input type="text" name="address" id="address" placeholder="Endereço" required
+                       class="mt-1 w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+            </div>
+
+            <div>
                 <input type="text" name="number" placeholder="Número" required
-                       class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
-                <input type="text" name="zipcode" placeholder="CEP" required
-                       class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+                       class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
             </div>
 
             <input type="text" name="city" placeholder="Cidade" required
@@ -111,6 +120,59 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const storeId = urlParams.get('store_id');
     if (storeId) document.getElementById('user_id').value = storeId;
+
+    const zipcodeInput = document.getElementById('zipcode');
+    const zipcodeStatus = document.getElementById('zipcodeStatus');
+    const addressInput = document.getElementById('address');
+    const cityInput = document.querySelector('[name="city"]');
+    const stateInput = document.querySelector('[name="state"]');
+    let lookupController = null;
+    let requestedZipcode = '';
+
+    zipcodeInput.addEventListener('input', async () => {
+        const digits = zipcodeInput.value.replace(/\D/g, '').slice(0, 8);
+        zipcodeInput.value = digits.length > 5
+            ? `${digits.slice(0, 5)}-${digits.slice(5)}`
+            : digits;
+
+        if (digits.length !== 8) {
+            if (lookupController) lookupController.abort();
+            lookupController = null;
+            requestedZipcode = '';
+            zipcodeStatus.textContent = '';
+            return;
+        }
+
+        if (requestedZipcode === digits) return;
+        requestedZipcode = digits;
+
+        if (lookupController) lookupController.abort();
+        lookupController = new AbortController();
+        const controller = lookupController;
+        zipcodeStatus.textContent = 'Buscando endereço...';
+
+        try {
+            const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`, {
+                signal: controller.signal
+            });
+            if (!response.ok) throw new Error('Falha ao consultar o ViaCEP.');
+
+            const data = await response.json();
+            if (data.erro) {
+                zipcodeStatus.textContent = 'CEP não encontrado. Confira o número digitado.';
+                return;
+            }
+
+            addressInput.value = data.logradouro || '';
+            cityInput.value = data.localidade || '';
+            stateInput.value = data.uf || '';
+            zipcodeStatus.textContent = 'Endereço preenchido pelo ViaCEP.';
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            console.error('Erro ao consultar o ViaCEP:', error);
+            zipcodeStatus.textContent = 'Não foi possível consultar o CEP. Preencha o endereço manualmente.';
+        }
+    });
 
     document.getElementById('registerForm').addEventListener('submit', async e => {
         e.preventDefault();
