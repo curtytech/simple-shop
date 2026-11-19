@@ -6,6 +6,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\ClientAuthController;
 use App\Http\Controllers\MercadoPagoController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\WelcomeController;
 use App\Models\User;
 
@@ -43,9 +44,13 @@ Route::prefix('client')->group(function () {
 Route::prefix('api/cart')->middleware('client.auth')->group(function () {
     Route::post('/add', [CartController::class, 'addToCart'])->name('cart.add');
     Route::post('/update', [CartController::class, 'updateQuantity'])->name('cart.update');
+    Route::post('/type', [CartController::class, 'updateTypeOfSell'])->name('cart.type');
     Route::post('/remove', [CartController::class, 'removeFromCart'])->name('cart.remove');
     Route::post('/clear', [CartController::class, 'clearCart'])->name('cart.clear');
     Route::get('/get', [CartController::class, 'getCart'])->name('cart.get');
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::post('/orders', [OrderController::class, 'submit'])->name('orders.submit');
+    Route::post('/orders/{order}/payment', [PaymentController::class, 'createOrderPaymentPreference'])->name('orders.payment');
 });
 
 Route::get('/{slug}', [StoreController::class, 'show'])->name('store.show');

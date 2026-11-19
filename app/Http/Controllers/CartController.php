@@ -112,6 +112,42 @@ class CartController extends Controller
         }
     }
 
+    public function updateTypeOfSell(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'product_id' => ['required', 'exists:products,id'],
+            'type_of_sell' => ['required', 'string'],
+        ]);
+
+        $product = Product::findOrFail($validated['product_id']);
+        $availableTypes = $product->type_of_sell ?? [];
+
+        if (!in_array($validated['type_of_sell'], $availableTypes, true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A modalidade selecionada não está disponível para este produto.',
+            ], 422);
+        }
+
+        $client = Auth::guard('client')->user();
+        $cart = $client->getCartForStore($product->user);
+        $cartItem = $cart->items()->where('product_id', $product->id)->first();
+
+        if (!$cartItem) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este produto não está no carrinho.',
+            ], 404);
+        }
+
+        $cartItem->update(['type_of_sell' => $validated['type_of_sell']]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Modalidade de compra atualizada.',
+        ]);
+    }
+
     /**
      * Remove a product from the cart.
      */

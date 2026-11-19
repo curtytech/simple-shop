@@ -398,6 +398,12 @@
                 removeFromCart(productId);
             }
         });
+
+        document.addEventListener('change', function(e) {
+            if (e.target.matches('.cart-type-of-sell')) {
+                updateCartTypeOfSell(e.target.dataset.product, e.target.value);
+            }
+        });
     }
 
     // Verificar autenticação do cliente
@@ -550,6 +556,31 @@
         }
     }
 
+    async function updateCartTypeOfSell(productId, typeOfSell) {
+        try {
+            const response = await fetch('/api/cart/type', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ product_id: productId, type_of_sell: typeOfSell })
+            });
+            const data = await response.json();
+            if (data.success) {
+                showNotification(data.message, 'success');
+                loadCart();
+            } else {
+                showNotification(data.message || 'Não foi possível atualizar a modalidade.', 'error');
+                loadCart();
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar modalidade:', error);
+            showNotification('Erro ao atualizar a modalidade da compra.', 'error');
+        }
+    }
+
     // Remover produto do carrinho
     async function removeFromCart(productId) {
         try {
@@ -647,6 +678,7 @@
             return;
         }
 
+        const modalityLabels = { venda_por_entrega: 'Venda por entrega', venda_no_local: 'Venda no local', encomenda: 'Encomenda' };
         cartContent.innerHTML = items.map(item => `
                 <div class="flex items-center space-x-4 p-4 border-b">
                     <div class="w-16 h-16 bg-gray-200 rounded">
@@ -658,6 +690,14 @@
                     <div class="flex-1">
                         <h4 class="font-semibold">${item.product.name}</h4>
                         <p class="text-gray-600">R$ ${parseFloat(item.product.price).toFixed(2).replace('.', ',')}</p>
+                        ${(item.product.type_of_sell || []).length ? `
+                            <label class="mt-2 block text-sm">Modalidade da compra
+                                <select class="cart-type-of-sell mt-1 w-full rounded border-gray-300" data-product="${item.product.id}">
+                                    <option value="">Escolha uma modalidade</option>
+                                    ${item.product.type_of_sell.map(type => `<option value="${type}" ${item.type_of_sell === type ? 'selected' : ''}>${modalityLabels[type] || type}</option>`).join('')}
+                                </select>
+                            </label>
+                        ` : ''}
                     </div>
                     <div class="flex items-center space-x-2">
                         <button class="cart-quantity-btn minus px-2 py-1 bg-gray-200 rounded" data-product="${item.product.id}">-</button>

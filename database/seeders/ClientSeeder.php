@@ -27,7 +27,7 @@ class ClientSeeder extends Seeder
                 'city' => 'Cidade Exemplo',
                 'state' => 'Estado Exemplo',
                 'country' => 'País Exemplo',
-                'zipcode' => '12345678',
+                'zipcode' => '25908800',
                 // 'verify_email' => 1,
             ],
            

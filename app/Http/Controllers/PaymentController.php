@@ -6,6 +6,7 @@ use App\Models\Sell;
 use App\Models\Cart;
 use App\Models\OldCart;
 use App\Models\OldCartItem;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
@@ -15,6 +16,116 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
+    public function createOrderPaymentPreference(Request $request, Order $order)
+    {
+        $client = auth('client')->user();
+        abort_unless($order->client_id === $client?->id, 404);
+
+        if (!$order->approved || $order->status === 'rejeitado') {
+            return response()->json([
+                'message' => 'A loja ainda não aprovou esta encomenda.',
+            ], 422);
+        }
+
+        if ($order->payment_status === 'approved') {
+            return response()->json(['message' => 'Esta encomenda já foi paga.'], 422);
+        }
+
+        $order->load(['store', 'product']);
+        $store = $order->store;
+        $credentials = $store->mercadopagoCredentials();
+
+        if (!$credentials['access_token'] || !$credentials['public_key']) {
+            return response()->json(['message' => 'A loja não configurou o Mercado Pago.'], 422);
+        }
+
+        $sell = $order->sell_id ? Sell::find($order->sell_id) : null;
+
+        if (!$sell) {
+            $oldCart = OldCart::create([
+                'client_id' => $client->id,
+                'user_id' => $store->id,
+            ]);
+
+            OldCartItem::create([
+                'old_cart_id' => $oldCart->id,
+                'product_id' => $order->product_id,
+                'quantity' => $order->quantity,
+                'price' => $order->total_price / max($order->quantity, 1),
+                'type_of_sell' => 'encomenda',
+            ]);
+
+            $sell = Sell::create([
+                'client_id' => $client->id,
+                'user_id' => $store->id,
+                'old_cart_id' => $oldCart->id,
+                'total' => $order->total_price,
+                'status' => 'pending',
+            ]);
+
+            $order->update(['sell_id' => $sell->id]);
+        }
+
+        $baseAppUrl = rtrim(config('app.url') ?: url('/'), '/');
+        $preference = [
+            'items' => [[
+                'id' => (string) $order->product_id,
+                'title' => $order->product->name . ' - Encomenda aprovada',
+                'quantity' => (int) $order->quantity,
+                'currency_id' => 'BRL',
+                'unit_price' => round((float) $order->total_price / max($order->quantity, 1), 2),
+            ]],
+            'payer' => ['name' => $client->name, 'email' => $client->email],
+            'back_urls' => [
+                'success' => $baseAppUrl . '/payments/mercadopago/callback/success',
+                'failure' => $baseAppUrl . '/payments/mercadopago/callback/failure',
+                'pending' => $baseAppUrl . '/payments/mercadopago/callback/pending',
+            ],
+            'auto_return' => 'approved',
+            'notification_url' => $credentials['webhook_url']
+                ?: route('mercadopago.webhook', [
+                    'store' => $store->id,
+                    'environment' => $store->mercadopago_environment ?? 'production',
+                ]),
+            'statement_descriptor' => Str::of($store->name)->ascii()->substr(0, 22)->trim(),
+            'external_reference' => (string) $sell->id,
+            'metadata' => [
+                'store_id' => $store->id,
+                'client_id' => $client->id,
+                'sell_id' => $sell->id,
+                'order_id' => $order->id,
+                'old_cart_id' => $sell->old_cart_id,
+            ],
+            'binary_mode' => true,
+        ];
+
+        $response = Http::withToken($credentials['access_token'])
+            ->post('https://api.mercadopago.com/checkout/preferences', $preference);
+
+        if (!$response->successful()) {
+            $sell->update(['status' => 'failure']);
+            $order->update(['payment_status' => 'failure']);
+
+            return response()->json([
+                'message' => 'Não foi possível criar o pagamento no Mercado Pago.',
+            ], 502);
+        }
+
+        $data = $response->json();
+        $sell->update([
+            'status' => 'pending',
+            'mercadopago_preference_id' => $data['id'] ?? null,
+            'mercadopago_response' => json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+        ]);
+        $order->update(['payment_status' => 'pending']);
+
+        return response()->json([
+            'init_point' => $data['init_point'] ?? null,
+            'sandbox_init_point' => $data['sandbox_init_point'] ?? null,
+            'sandbox' => ($store->mercadopago_environment ?? 'production') === 'sandbox',
+        ]);
+    }
+
     public function createMercadoPagoPreference(Request $request, ShippingService $shippingService)
     {
 
@@ -47,8 +158,23 @@ class PaymentController extends Controller
         $cartItems = $cart->items()
             ->with('product')
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->filter(fn ($item): bool => $item->type_of_sell !== 'encomenda')
+            ->values();
         $usesCartItems = empty($validated['items'] ?? []);
+
+        if ($usesCartItems) {
+            foreach ($cartItems as $cartItem) {
+                $availableTypes = $cartItem->product->type_of_sell ?? [];
+
+                if ($availableTypes !== [] && !in_array($cartItem->type_of_sell, $availableTypes, true)) {
+                    return response()->json([
+                        'message' => 'Escolha a modalidade de compra para todos os produtos do carrinho.',
+                    ], 422);
+                }
+            }
+        }
+
         $items = $validated['items'] ?? [];
 
         // Carregar itens do carrinho do cliente autenticado, se não enviados
@@ -56,7 +182,14 @@ class PaymentController extends Controller
             $items = $cartItems->map(function ($item) {
                 return [
                     'id' => (string) $item->product_id,
-                    'title' => $item->product->name,
+                    'title' => $item->product->name . ($item->type_of_sell
+                        ? ' - ' . match ($item->type_of_sell) {
+                            'venda_por_entrega' => 'Venda por entrega',
+                            'venda_no_local' => 'Venda no local',
+                            'encomenda' => 'Encomenda',
+                            default => $item->type_of_sell,
+                        }
+                        : ''),
                     'quantity' => (int) $item->quantity,
                     'currency_id' => 'BRL',
                     'unit_price' => (float) $item->price,
@@ -194,6 +327,7 @@ class PaymentController extends Controller
                 'product_id' => $item->product_id,
                 'quantity' => $item->quantity,
                 'price' => $item->price,
+                'type_of_sell' => $item->type_of_sell,
             ]);
         }
 
@@ -493,8 +627,10 @@ class PaymentController extends Controller
             'mercadopago_response' => json_encode($responsePayload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
         ]);
 
+        Order::where('sell_id', $sell->id)->update(['payment_status' => $finalStatus]);
+
         // Se o status for aprovado, limpa os itens do carrinho ativo do cliente
-        if ($finalStatus === 'approved') {
+        if ($finalStatus === 'approved' && !Order::where('sell_id', $sell->id)->exists()) {
             $activeCart = Cart::where('client_id', $sell->client_id)
                 ->where('user_id', $sell->user_id)
                 ->first();
@@ -630,7 +766,9 @@ class PaymentController extends Controller
 
             $sell->update($updateData);
 
-            if ($status === 'approved') {
+            Order::where('sell_id', $sell->id)->update(['payment_status' => $status]);
+
+            if ($status === 'approved' && !Order::where('sell_id', $sell->id)->exists()) {
                 $cart = Cart::where('client_id', $sell->client_id)
                     ->where('user_id', $sell->user_id)
                     ->first();

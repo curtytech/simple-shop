@@ -45,7 +45,7 @@ class Cart extends Model
      */
     public function getTotalAttribute(): float
     {
-        return $this->items->sum(function ($item) {
+        return $this->items->where('type_of_sell', '!=', 'encomenda')->sum(function ($item) {
             return $item->quantity * $item->price;
         });
     }
@@ -75,6 +75,9 @@ class Cart extends Model
                 'product_id' => $product->id,
                 'quantity' => $quantity,
                 'price' => $product->price,
+                'type_of_sell' => count($product->type_of_sell ?? []) === 1
+                    ? $product->type_of_sell[0]
+                    : null,
             ]);
         }
 

@@ -62,6 +62,17 @@ class ProductResource extends Resource
                             ->label('Nome')
                             ->required()
                             ->maxLength(255),
+
+                        Forms\Components\Select::make('type_of_sell')
+                            ->label('Modalidade de venda')
+                            ->multiple()
+                            ->options([
+                                'venda_por_entrega' => 'Venda por entrega',
+                                'venda_no_local' => 'Venda no local',
+                                'encomenda' => 'Encomenda',
+                            ])
+                            ->required()
+                            ->native(false),
                     ])
                     ->columns(2),
 
@@ -175,6 +186,18 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Categoria')
                     ->sortable(),
+
+                Tables\Columns\TextColumn::make('type_of_sell')
+                    ->label('Modalidade')
+                    ->formatStateUsing(fn (mixed $state): string => collect(is_array($state) ? $state : (filled($state) ? [$state] : []))
+                        ->map(fn (string $value): string => match ($value) {
+                            'venda_por_entrega' => 'Por entrega',
+                            'venda_no_local' => 'No local',
+                            'encomenda' => 'Encomenda',
+                            default => $value,
+                        })
+                        ->implode(', ') ?: 'Não definida')
+                    ->badge(),
 
                 Tables\Columns\TextColumn::make('price')
                     ->label('Preço')

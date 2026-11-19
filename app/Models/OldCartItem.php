@@ -15,6 +15,7 @@ class OldCartItem extends Model
         'product_id',
         'quantity',
         'price',
+        'type_of_sell',
     ];
 
     protected $casts = [

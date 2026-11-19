@@ -238,6 +238,7 @@
                 <div id="cart-content" class="p-6 overflow-y-auto max-h-96">
                     <!-- Conteúdo do carrinho será carregado aqui -->
                 </div>
+                <div id="order-status-content" class="px-6 pb-4 space-y-3"></div>
 
                 <div class="max-h-72 overflow-y-auto border-t border-gray-200 p-6 dark:border-gray-700">
                     @livewire('shipping-calculator', ['storeId' => $store->id])
@@ -248,6 +249,9 @@
                         <span class="text-lg font-semibold">Subtotal dos produtos:</span>
                         <span id="cart-total" class="text-2xl font-bold text-green-600">R$ 0,00</span>
                     </div>
+                    <button id="submit-orders" class="hidden w-full mb-3 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">
+                        Enviar encomendas para aprovação
+                    </button>
                     <div class="flex space-x-3">
                         <button id="clear-cart" class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors">
                             Limpar Carrinho
@@ -519,6 +523,20 @@
 
                     removeFromCart(productId);
                 }
+
+                if (e.target.closest('#submit-orders')) {
+                    submitEncomendas();
+                }
+
+                if (e.target.closest('.order-pay-btn')) {
+                    payOrder(e.target.closest('.order-pay-btn').dataset.order);
+                }
+            });
+
+            document.addEventListener('change', function(e) {
+                if (e.target.matches('.cart-type-of-sell')) {
+                    updateCartTypeOfSell(e.target.dataset.product, e.target.value);
+                }
             });
         }
 
@@ -672,6 +690,31 @@
             }
         }
 
+        async function updateCartTypeOfSell(productId, typeOfSell) {
+            try {
+                const response = await fetch('/api/cart/type', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ product_id: productId, type_of_sell: typeOfSell })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    loadCart();
+                } else {
+                    showNotification(data.message || 'Não foi possível atualizar a modalidade.', 'error');
+                    loadCart();
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar modalidade:', error);
+                showNotification('Erro ao atualizar a modalidade da compra.', 'error');
+            }
+        }
+
         // Remover produto do carrinho
         async function removeFromCart(productId) {
             try {
@@ -746,6 +789,7 @@
                         displayCartItems(data.cart.items);
                         updateCartCount(data.cart.total_quantity);
                         updateCartTotal(data.cart.total);
+                        loadClientOrders();
                     }
                 }
             } catch (error) {
@@ -756,13 +800,20 @@
         // Exibir itens do carrinho
         function displayCartItems(items) {
             const cartContent = document.getElementById('cart-content');
+            const orderItems = items.filter(item => item.type_of_sell === 'encomenda');
+            const immediateItems = items.filter(item => item.type_of_sell !== 'encomenda');
+            document.getElementById('submit-orders')?.classList.toggle('hidden', orderItems.length === 0);
+            document.getElementById('checkout')?.classList.toggle('hidden', immediateItems.length === 0);
 
             if (items.length === 0) {
                 cartContent.innerHTML = '<p class="text-gray-500 text-center">Seu carrinho está vazio</p>';
                 return;
             }
 
-            cartContent.innerHTML = items.map(item => `
+            const modalityLabels = { venda_por_entrega: 'Venda por entrega', venda_no_local: 'Venda no local', encomenda: 'Encomenda' };
+            const sortedItems = [...items].sort((a, b) => Number(a.type_of_sell === 'encomenda') - Number(b.type_of_sell === 'encomenda'));
+            cartContent.innerHTML = sortedItems.map((item, index) => `
+                ${index === 0 || (item.type_of_sell === 'encomenda') !== (sortedItems[index - 1].type_of_sell === 'encomenda') ? `<h4 class="w-full border-b py-2 font-semibold">${item.type_of_sell === 'encomenda' ? 'Encomendas · pagamento após aprovação' : 'Compra imediata'}</h4>` : ''}
                 <div class="flex items-center space-x-4 p-4 border-b">
                     <div class="w-16 h-16 bg-gray-200 rounded">
                         ${item.product.images && item.product.images.length > 0
@@ -773,6 +824,14 @@
                     <div class="flex-1">
                         <h4 class="font-semibold">${item.product.name}</h4>
                         <p class="text-gray-600">R$ ${parseFloat(item.product.price).toFixed(2).replace('.', ',')}</p>
+                        ${(item.product.type_of_sell || []).length ? `
+                            <label class="mt-2 block text-sm">Modalidade da compra
+                                <select class="cart-type-of-sell mt-1 w-full rounded border-gray-300" data-product="${item.product.id}">
+                                    <option value="">Escolha uma modalidade</option>
+                                    ${item.product.type_of_sell.map(type => `<option value="${type}" ${item.type_of_sell === type ? 'selected' : ''}>${modalityLabels[type] || type}</option>`).join('')}
+                                </select>
+                            </label>
+                        ` : ''}
                     </div>
                     <div class="flex items-center space-x-2">
                         <button class="cart-quantity-btn minus px-2 py-1 bg-gray-200 rounded" data-product="${item.product.id}">-</button>
@@ -786,6 +845,51 @@
                     </button>
                 </div>
             `).join('');
+        }
+
+        async function submitEncomendas() {
+            const response = await fetch('/api/cart/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ store_id: storeId })
+            });
+            const data = await response.json();
+            showNotification(data.message || 'Não foi possível enviar a encomenda.', data.success ? 'success' : 'error');
+            if (data.success) loadCart();
+        }
+
+        async function loadClientOrders() {
+            const container = document.getElementById('order-status-content');
+            if (!container) return;
+
+            const response = await fetch(`/api/cart/orders?store_id=${storeId}`, { headers: { 'Accept': 'application/json' } });
+            const data = await response.json();
+            if (!data.success) return;
+
+            const statusLabels = { pendente: 'Aguardando aprovação', em_preparacao: 'Aprovada · em preparação', pronto: 'Pronta', entregue: 'Entregue', rejeitado: 'Recusada' };
+            container.innerHTML = data.orders.length ? `<h4 class="font-semibold">Minhas encomendas</h4>${data.orders.map(order => `
+                <div class="flex items-center justify-between gap-3 rounded border p-3 text-sm">
+                    <div><strong>${order.product}</strong> × ${order.quantity}<br>${statusLabels[order.status] || order.status} · R$ ${order.total_price.toFixed(2).replace('.', ',')}</div>
+                    ${order.approved && order.payment_status !== 'approved' ? `<button class="order-pay-btn rounded bg-green-600 px-3 py-2 text-white" data-order="${order.id}">${order.payment_status === 'pending' ? 'Pagar novamente' : 'Pagar encomenda'}</button>` : order.payment_status === 'approved' ? '<span class="text-green-700">Paga</span>' : ''}
+                </div>`).join('')}` : '';
+        }
+
+        async function payOrder(orderId) {
+            const response = await fetch(`/api/cart/orders/${orderId}/payment`, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                showNotification(data.message || 'Não foi possível iniciar o pagamento.', 'error');
+                return;
+            }
+            const paymentUrl = data.sandbox && data.sandbox_init_point ? data.sandbox_init_point : data.init_point;
+            if (paymentUrl) window.location.href = paymentUrl;
         }
 
         // Atualizar contador do carrinho

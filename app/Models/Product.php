@@ -23,10 +23,12 @@ class Product extends Model
         'length_cm',
         'weight_kg',
         'images',
+        'type_of_sell',
     ];
 
     protected $casts = [
         'images' => 'array',
+        'type_of_sell' => 'array',
         'price' => 'decimal:2',
         'width_cm' => 'decimal:2',
         'height_cm' => 'decimal:2',
