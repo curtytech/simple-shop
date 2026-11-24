@@ -556,6 +556,7 @@
                     if (data.success && data.client) {
                         currentClient = data.client;
                         updateClientUI(true);
+                        window.loadCustomerNotifications?.();
                         loadCart();
                     } else {
                         updateClientUI(false);

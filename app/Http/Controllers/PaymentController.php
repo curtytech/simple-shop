@@ -9,6 +9,7 @@ use App\Models\OldCartItem;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Services\ShippingService;
 use Illuminate\Support\Str;
@@ -316,29 +317,93 @@ class PaymentController extends Controller
         }
 
         // Cria o carrinho histórico e a venda antes de enviar ao MP para vincular na preferência
-        $oldCart = OldCart::create([
-            'client_id' => $client->id,
-            'user_id' => $store->id,
-        ]);
+        [$sell, $oldCart, $cachedPreference] = DB::transaction(function () use (
+            $cart,
+            $cartItems,
+            $client,
+            $store,
+            $shippingData
+        ): array {
+            Cart::query()->whereKey($cart->id)->lockForUpdate()->first();
 
-        foreach ($cartItems as $item) {
-            OldCartItem::create([
-                'old_cart_id' => $oldCart->id,
-                'product_id' => $item->product_id,
-                'quantity' => $item->quantity,
-                'price' => $item->price,
+            $cartSnapshot = $cartItems->map(fn ($item): array => [
+                'product_id' => (int) $item->product_id,
+                'quantity' => (int) $item->quantity,
+                'price' => number_format((float) $item->price, 2, '.', ''),
                 'type_of_sell' => $item->type_of_sell,
+            ])->values()->all();
+
+            $pendingSales = Sell::query()
+                ->where('client_id', $client->id)
+                ->where('user_id', $store->id)
+                ->whereIn('status', ['pending', 'failure'])
+                ->latest()
+                ->get();
+            $sell = $pendingSales->first(
+                fn (Sell $candidate): bool => !Order::where('sell_id', $candidate->id)->exists()
+            );
+            $oldCart = $sell ? OldCart::find($sell->old_cart_id) : null;
+            $cachedPreference = null;
+            $sameCheckout = false;
+
+            if (!$sell || !$oldCart) {
+                $oldCart = OldCart::create([
+                    'client_id' => $client->id,
+                    'user_id' => $store->id,
+                ]);
+
+                $sell = Sell::create([
+                    'client_id' => $client->id,
+                    'user_id' => $store->id,
+                    'old_cart_id' => $oldCart->id,
+                    'total' => $cart->total + (float) ($shippingData['price'] ?? 0),
+                    'status' => 'pending',
+                    'shipping_data' => $shippingData,
+                ]);
+            } else {
+                $existingSnapshot = $oldCart->items()->orderBy('id')->get()->map(fn ($item): array => [
+                    'product_id' => (int) $item->product_id,
+                    'quantity' => (int) $item->quantity,
+                    'price' => number_format((float) $item->price, 2, '.', ''),
+                    'type_of_sell' => $item->type_of_sell,
+                ])->values()->all();
+                $sameCheckout = $existingSnapshot === $cartSnapshot
+                    && $sell->shipping_data === $shippingData;
+
+                if ($sameCheckout) {
+                    $cachedPreference = json_decode((string) $sell->mercadopago_response, true);
+                }
+
+                $oldCart->items()->delete();
+                $sell->update([
+                    'total' => $cart->total + (float) ($shippingData['price'] ?? 0),
+                    'status' => 'pending',
+                    'shipping_data' => $shippingData,
+                    'mercadopago_response' => $sameCheckout ? $sell->mercadopago_response : null,
+                ]);
+            }
+
+            foreach ($cartItems as $item) {
+                OldCartItem::create([
+                    'old_cart_id' => $oldCart->id,
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'type_of_sell' => $item->type_of_sell,
+                ]);
+            }
+
+            return [$sell, $oldCart, $sameCheckout ? $cachedPreference : null];
+        });
+
+        if (is_array($cachedPreference) && !empty($cachedPreference['init_point'])) {
+            return response()->json([
+                'init_point' => $cachedPreference['init_point'],
+                'sandbox_init_point' => $cachedPreference['sandbox_init_point'] ?? null,
+                'public_key' => $credentials['public_key'],
+                'sandbox' => ($store->mercadopago_environment ?? 'production') === 'sandbox',
             ]);
         }
-
-        $sell = Sell::create([
-            'client_id' => $client->id,
-            'user_id' => $store->id,
-            'old_cart_id' => $oldCart->id,
-            'total' => $cart->total + (float) ($shippingData['price'] ?? 0),
-            'status' => 'pending',
-            'shipping_data' => $shippingData,
-        ]);
 
         $externalReference = (string) $sell->id;
         // Limitar descriptor a 22 caracteres ASCII (requisito do MP)
@@ -371,14 +436,17 @@ class PaymentController extends Controller
         ];
 
         $baseUrl = 'https://api.mercadopago.com';
-        $endpoint = '/checkout/preferences';
         $token = $credentials['access_token'];
 
         $headers = []; // sem integrator-id, não há coluna correspondente
 
-        $response = Http::withToken($token)
-            ->withHeaders($headers)
-            ->post($baseUrl . $endpoint, $preference);
+        $preferenceRequest = Http::withToken($token)->withHeaders($headers);
+        $response = $sell->mercadopago_preference_id
+            ? $preferenceRequest->put(
+                $baseUrl . '/checkout/preferences/' . $sell->mercadopago_preference_id,
+                $preference
+            )
+            : $preferenceRequest->post($baseUrl . '/checkout/preferences', $preference);
 
         if (!$response->successful()) {
             $body = $response->json();
@@ -395,7 +463,7 @@ class PaymentController extends Controller
         $data = $response->json();
 
         $sell->update([
-            'mercadopago_preference_id' => $data['id'] ?? null,
+            'mercadopago_preference_id' => $data['id'] ?? $sell->mercadopago_preference_id,
             'mercadopago_response' => json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
         ]);
 

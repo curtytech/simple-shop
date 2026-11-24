@@ -75,6 +75,11 @@ class Client extends Authenticatable
         return $this->hasMany(Cart::class);
     }
 
+    public function customerNotifications(): HasMany
+    {
+        return $this->hasMany(CustomerNotification::class);
+    }
+
     /**
      * Get the cart for a specific store.
      */

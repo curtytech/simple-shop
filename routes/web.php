@@ -7,6 +7,7 @@ use App\Http\Controllers\ClientAuthController;
 use App\Http\Controllers\MercadoPagoController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\CustomerNotificationController;
 use App\Http\Controllers\WelcomeController;
 use App\Models\User;
 
@@ -51,6 +52,10 @@ Route::prefix('api/cart')->middleware('client.auth')->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::post('/orders', [OrderController::class, 'submit'])->name('orders.submit');
     Route::post('/orders/{order}/payment', [PaymentController::class, 'createOrderPaymentPreference'])->name('orders.payment');
+    Route::get('/customer-notifications', [CustomerNotificationController::class, 'index'])->name('customer-notifications.index');
+    Route::patch('/customer-notifications/read-all', [CustomerNotificationController::class, 'markAllRead'])->name('customer-notifications.read-all');
+    Route::patch('/customer-notifications/{notification}/read', [CustomerNotificationController::class, 'markRead'])->name('customer-notifications.read');
+    Route::delete('/customer-notifications/{notification}', [CustomerNotificationController::class, 'destroy'])->name('customer-notifications.destroy');
 });
 
 Route::get('/{slug}', [StoreController::class, 'show'])->name('store.show');
