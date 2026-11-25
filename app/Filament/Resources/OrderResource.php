@@ -83,6 +83,13 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('created_at')->label('Recebido em')->dateTime('d/m/Y H:i')->sortable(),
             ])
             ->actions([
+                Tables\Actions\Action::make('whatsapp')
+                    ->label('WhatsApp')
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->color('success')
+                    ->url(fn (Order $record): ?string => static::getWhatsAppUrl($record))
+                    ->openUrlInNewTab()
+                    ->visible(fn (Order $record): bool => static::getWhatsAppUrl($record) !== null),
                 Tables\Actions\Action::make('accept')
                     ->label('Aceitar')
                     ->icon('heroicon-o-check')
@@ -100,6 +107,27 @@ class OrderResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->recordUrl(fn (Order $record): string => static::getUrl('edit', ['record' => $record]));
+    }
+
+    private static function getWhatsAppUrl(Order $record): ?string
+    {
+        $phone = preg_replace('/\D+/', '', (string) $record->client?->celphone);
+
+        if ($phone === '') {
+            return null;
+        }
+
+        if (strlen($phone) === 10 || strlen($phone) === 11) {
+            $phone = '55' . $phone;
+        }
+
+        $message = sprintf(
+            'Olá, %s! Estou entrando em contato sobre a encomenda #%s. Podemos combinar a entrega?',
+            $record->client->name,
+            $record->id,
+        );
+
+        return 'https://wa.me/' . $phone . '?text=' . rawurlencode($message);
     }
 
     public static function getPages(): array
