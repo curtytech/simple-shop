@@ -119,14 +119,15 @@ class ClientAuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:clients,email,' . $client->id,
-            'celphone' => 'required|string|max:20',
+            'celphone' => ['required', 'string', 'regex:/^\(\d{2}\) \d{4,5}-\d{4}$/'],
             'password' => 'nullable|string|min:8|confirmed',
             'address' => 'required|string|max:255',
             'number' => 'required|string|max:10',
             'city' => 'required|string|max:100',
-            'state' => 'required|string|max:100',
+            'state' => 'required|string|in:AC,AL,AP,AM,BA,CE,DF,ES,GO,MA,MT,MS,MG,PA,PB,PR,PE,PI,RJ,RN,RS,RO,RR,SC,SP,SE,TO',
             'country' => 'required|string|max:100',
-            'zipcode' => 'required|string|max:20',
+            'zipcode' => ['required', 'string', 'regex:/^\d{5}-\d{3}$/'],
+            'reference_point' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -138,10 +139,12 @@ class ClientAuthController extends Controller
         }
 
         try {
-            $data = $request->except(['password', 'password_confirmation']);
+            $data = $validator->validated();
 
             if ($request->filled('password')) {
                 $data['password'] = Hash::make($request->password);
+            } else {
+                unset($data['password']);
             }
 
             $client->update($data);

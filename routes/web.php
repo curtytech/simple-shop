@@ -61,6 +61,7 @@ Route::prefix('api/cart')->middleware('client.auth')->group(function () {
 Route::get('/{slug}', [StoreController::class, 'show'])->name('store.show');
 Route::get('/{slug}/config', [StoreController::class, 'clientConfig'])->name('store.client.config');
 Route::get('/{slug}/products', [StoreController::class, 'clientProducts'])->name('store.client.products');
+Route::get('/{slug}/products/{product}', [StoreController::class, 'product'])->name('store.product');
 Route::get('/{slug}/privacy-policy', [StoreController::class, 'privacyPolicy'])->name('store.privacy-policy');
 Route::get('/{slug}/terms', [StoreController::class, 'termsOfUse'])->name('store.terms');
 

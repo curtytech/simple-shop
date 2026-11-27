@@ -139,9 +139,9 @@
                 @foreach($store->products as $product)
                 <div class="product-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow" data-category="{{ $product->category_id }}">
                     <!-- Imagem do Produto -->
-                    <div class="w-full h-48 bg-gray-200">
+                    <a href="{{ route('store.product', [$store->slug, $product->id]) }}" class="block w-full h-48 bg-gray-200" aria-label="Ver detalhes de {{ $product->name }}">
                         @if($product->images && count($product->images) > 0)
-                        <img src="{{ Storage::url($product->images[0]) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                        <img src="{{ str_starts_with($product->images[0], 'http://') || str_starts_with($product->images[0], 'https://') ? $product->images[0] : Storage::url($product->images[0]) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
                         @else
                         <div class="w-full h-full flex items-center justify-center">
                             <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,11 +149,15 @@
                             </svg>
                         </div>
                         @endif
-                    </div>
+                    </a>
 
                     <!-- Informações do Produto -->
                     <div class="p-4">
-                        <h3 class="font-semibold text-lg text-gray-800 mb-2">{{ $product->name }}</h3>
+                        <h3 class="font-semibold text-lg text-gray-800 mb-2">
+                            <a href="{{ route('store.product', [$store->slug, $product->id]) }}" class="hover:text-blue-600">
+                                {{ $product->name }}
+                            </a>
+                        </h3>
                         @if($product->description)
                         <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ $product->description }}</p>
                         @endif

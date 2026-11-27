@@ -49,6 +49,19 @@ class StoreController extends Controller
         return view('stores.client-products', compact('store', 'purchases'));
     }
 
+    public function product($slug, $productId)
+    {
+        $store = User::where('slug', $slug)
+            ->where('role', 'store')
+            ->firstOrFail();
+
+        $product = $store->products()
+            ->with('category')
+            ->findOrFail($productId);
+
+        return view('stores.product', compact('store', 'product'));
+    }
+
     public function privacyPolicy($slug)
     {
         return $this->legalDocument($slug, 'privacy');

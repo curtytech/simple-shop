@@ -46,7 +46,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Celular / WhatsApp</label>
-                            <input type="text" name="celphone" id="celphone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" required>
+                            <input type="tel" name="celphone" id="celphone" inputmode="tel" autocomplete="tel" maxlength="15" pattern="\(\d{2}\) \d{4,5}-\d{4}" placeholder="(00) 00000-0000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" required>
                         </div>
                     </div>
                 </div>
@@ -65,7 +65,8 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">CEP</label>
-                            <input type="text" name="zipcode" id="zipcode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" required>
+                            <input type="text" name="zipcode" id="zipcode" inputmode="numeric" autocomplete="postal-code" maxlength="9" pattern="\d{5}-\d{3}" placeholder="00000-000" aria-describedby="zipcode-status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" required>
+                            <p id="zipcode-status" class="mt-1 text-sm text-gray-600" aria-live="polite"></p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Cidade</label>
@@ -73,7 +74,36 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Estado</label>
-                            <input type="text" name="state" id="state" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" required>
+                            <select name="state" id="state" class="mt-1 block w-full rounded-md border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" required>
+                                <option value="">Selecione a UF</option>
+                                <option value="AC">AC - Acre</option>
+                                <option value="AL">AL - Alagoas</option>
+                                <option value="AP">AP - Amapá</option>
+                                <option value="AM">AM - Amazonas</option>
+                                <option value="BA">BA - Bahia</option>
+                                <option value="CE">CE - Ceará</option>
+                                <option value="DF">DF - Distrito Federal</option>
+                                <option value="ES">ES - Espírito Santo</option>
+                                <option value="GO">GO - Goiás</option>
+                                <option value="MA">MA - Maranhão</option>
+                                <option value="MT">MT - Mato Grosso</option>
+                                <option value="MS">MS - Mato Grosso do Sul</option>
+                                <option value="MG">MG - Minas Gerais</option>
+                                <option value="PA">PA - Pará</option>
+                                <option value="PB">PB - Paraíba</option>
+                                <option value="PR">PR - Paraná</option>
+                                <option value="PE">PE - Pernambuco</option>
+                                <option value="PI">PI - Piauí</option>
+                                <option value="RJ">RJ - Rio de Janeiro</option>
+                                <option value="RN">RN - Rio Grande do Norte</option>
+                                <option value="RS">RS - Rio Grande do Sul</option>
+                                <option value="RO">RO - Rondônia</option>
+                                <option value="RR">RR - Roraima</option>
+                                <option value="SC">SC - Santa Catarina</option>
+                                <option value="SP">SP - São Paulo</option>
+                                <option value="SE">SE - Sergipe</option>
+                                <option value="TO">TO - Tocantins</option>
+                            </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">País</label>
@@ -118,6 +148,100 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('profile-form');
+        const phoneInput = document.getElementById('celphone');
+        const zipcodeInput = document.getElementById('zipcode');
+        const zipcodeStatus = document.getElementById('zipcode-status');
+        const addressInput = document.getElementById('address');
+        const cityInput = document.getElementById('city');
+        const stateInput = document.getElementById('state');
+        const countryInput = document.getElementById('country');
+        const states = {
+            'acre': 'AC', 'alagoas': 'AL', 'amapa': 'AP', 'amazonas': 'AM',
+            'bahia': 'BA', 'ceara': 'CE', 'distrito federal': 'DF',
+            'espirito santo': 'ES', 'goias': 'GO', 'maranhao': 'MA',
+            'mato grosso': 'MT', 'mato grosso do sul': 'MS', 'minas gerais': 'MG',
+            'para': 'PA', 'paraiba': 'PB', 'parana': 'PR', 'pernambuco': 'PE',
+            'piaui': 'PI', 'rio de janeiro': 'RJ', 'rio grande do norte': 'RN',
+            'rio grande do sul': 'RS', 'rondonia': 'RO', 'roraima': 'RR',
+            'santa catarina': 'SC', 'sao paulo': 'SP', 'sergipe': 'SE',
+            'tocantins': 'TO', 'amapa': 'AP'
+        };
+        let lookupController = null;
+        let requestedZipcode = '';
+
+        function maskPhone(value) {
+            let digits = value.replace(/\D/g, '');
+            if (digits.startsWith('55') && (digits.length === 12 || digits.length === 13)) {
+                digits = digits.slice(2);
+            }
+            digits = digits.slice(0, 11);
+            if (!digits) return '';
+
+            const prefix = digits.length > 2 ? `(${digits.slice(0, 2)}) ` : `(${digits}`;
+            if (digits.length <= 2) return prefix;
+
+            const localNumber = digits.slice(2);
+            const areaLength = digits.length > 10 ? 5 : 4;
+            const local = localNumber.slice(0, areaLength);
+            const suffix = localNumber.slice(areaLength);
+            return `${prefix}${local}${suffix ? `-${suffix}` : ''}`;
+        }
+
+        function maskZipcode(value) {
+            const digits = value.replace(/\D/g, '').slice(0, 8);
+            return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+        }
+
+        async function lookupZipcode() {
+            const digits = zipcodeInput.value.replace(/\D/g, '');
+            if (digits.length !== 8) {
+                if (lookupController) lookupController.abort();
+                lookupController = null;
+                requestedZipcode = '';
+                zipcodeStatus.textContent = '';
+                return;
+            }
+
+            if (requestedZipcode === digits) return;
+            requestedZipcode = digits;
+            if (lookupController) lookupController.abort();
+            lookupController = new AbortController();
+            const controller = lookupController;
+            zipcodeStatus.textContent = 'Buscando endereço...';
+
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`, {
+                    signal: controller.signal
+                });
+                if (!response.ok) throw new Error('Falha ao consultar o ViaCEP.');
+                const data = await response.json();
+
+                if (data.erro) {
+                    zipcodeStatus.textContent = 'CEP não encontrado. Confira o número digitado.';
+                    return;
+                }
+
+                addressInput.value = data.logradouro || addressInput.value;
+                cityInput.value = data.localidade || cityInput.value;
+                stateInput.value = data.uf || '';
+                countryInput.value = 'Brasil';
+                zipcodeStatus.textContent = 'Endereço preenchido pelo ViaCEP.';
+            } catch (error) {
+                if (error.name === 'AbortError') return;
+                console.error('Erro ao consultar o CEP:', error);
+                zipcodeStatus.textContent = 'Não foi possível consultar o CEP. Preencha o endereço manualmente.';
+            }
+        }
+
+        phoneInput.addEventListener('input', () => {
+            phoneInput.value = maskPhone(phoneInput.value);
+        });
+        zipcodeInput.addEventListener('input', () => {
+            zipcodeInput.value = maskZipcode(zipcodeInput.value);
+            lookupZipcode();
+        });
+
         // Verificar autenticação e carregar dados
         fetch('/client/user')
             .then(response => {
@@ -129,18 +253,26 @@
             })
             .then(data => {
                 if (data.client) {
-                    const fields = ['name', 'email', 'celphone', 'address', 'number', 'zipcode', 'city', 'state', 'country', 'reference_point'];
+                    const fields = ['name', 'email', 'address', 'number', 'city', 'country', 'reference_point'];
                     fields.forEach(field => {
                         if (document.getElementById(field)) {
                             document.getElementById(field).value = data.client[field] || '';
                         }
                     });
+                    phoneInput.value = maskPhone(data.client.celphone || '');
+                    zipcodeInput.value = maskZipcode(data.client.zipcode || '');
+                    const savedState = (data.client.state || '').trim();
+                    stateInput.value = savedState.toUpperCase();
+                    if (!stateInput.value) {
+                        const normalizedState = savedState.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+                        stateInput.value = states[normalizedState] || '';
+                    }
                 }
             })
             .catch(error => console.error('Erro ao carregar dados:', error));
 
         // Envio do formulário
-        document.getElementById('profile-form').addEventListener('submit', function(e) {
+        form.addEventListener('submit', function(e) {
             e.preventDefault();
 
             const formData = new FormData(this);
